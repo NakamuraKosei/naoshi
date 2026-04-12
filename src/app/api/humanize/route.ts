@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { loadHumanizeSystemPrompt } from "@/lib/humanize/load-prompt";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * /api/humanize
@@ -97,6 +98,17 @@ function parseStructuredOutput(raw: string): {
 
 export async function POST(request: Request) {
   const startedAt = Date.now();
+
+  // --- 0. レートリミット（IP単位、1分あたり10リクエスト） ---
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
+  const rl = rateLimit(`humanize:${ip}`, 10, 60_000);
+  if (!rl.allowed) {
+    return Response.json(
+      { error: "リクエストが多すぎます。しばらくお待ちください。" },
+      { status: 429 },
+    );
+  }
 
   // --- 1. APIキーの事前チェック（モック時はスキップ） ---
   const apiKey = process.env.ANTHROPIC_API_KEY;

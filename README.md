@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Naoshi
 
-## Getting Started
+AIで書いたレポートを、ちゃんと人間の言葉に。
 
-First, run the development server:
+日本の大学生のための、日本語特化AIテキストヒューマナイザー。
+
+## Tech Stack
+
+- **Frontend**: Next.js 16 (App Router) / TypeScript / Tailwind CSS v4
+- **Auth**: Supabase Auth (Magic Link + Google OAuth)
+- **DB**: Supabase Postgres (RLS)
+- **AI**: Anthropic Claude Sonnet 4
+- **Payment**: Stripe (Checkout / Customer Portal / Webhooks)
+- **Hosting**: Vercel
+
+## Setup
+
+### 1. Install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.local.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Fill in the values (see `.env.local.example` for descriptions).
 
-## Learn More
+### 3. Supabase
 
-To learn more about Next.js, take a look at the following resources:
+- Create project at [supabase.com](https://supabase.com)
+- Run migration: `supabase/migrations/0001_init.sql`
+- Auth > URL Configuration: add redirect URL `http://localhost:3001/auth/callback`
+- Auth > Providers: enable Google (optional)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 4. Stripe
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Create 3 products/prices (Light weekly, Heavy monthly, Heavy yearly)
+- Set price IDs in `.env.local`
+- For local webhook testing: `stripe listen --forward-to localhost:3001/api/stripe/webhook`
 
-## Deploy on Vercel
+### 5. Run
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run dev -- -p 3001
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+src/
+  app/
+    (marketing)/     # LP, pricing, login, legal pages
+    (app)/           # Authenticated: /app, /account, /history
+    api/             # Route handlers: humanize, auth, stripe
+    auth/            # Client-side auth callback
+  components/
+    ui/              # Button, Card, Input, Textarea, Badge
+    layout/          # SiteHeader, SiteFooter, HeaderNav
+    marketing/       # PricingPlans, FAQ, FeatureCard, StepCard
+    brand/           # Logo
+    hero-converter   # LP conversion UI
+    login-modal      # Auth modal
+    limit-modal      # Quota exceeded modal
+  lib/
+    supabase/        # Client, server, service, middleware
+    stripe/          # Stripe client, price mapping
+    usage/           # Plans, check-limit, record-usage
+    humanize/        # Prompt loader
+prompts/
+  humanize-system-prompt.md  # AI conversion prompt (source of truth)
+supabase/
+  migrations/        # DB schema
+test-results/        # M4 quality test templates
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (webhooks) |
+| `ANTHROPIC_API_KEY` | Yes | Claude API key |
+| `MOCK_HUMANIZE` | No | Set to `1` for mock mode (no API calls) |
+| `STRIPE_SECRET_KEY` | Yes | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Yes | Stripe webhook signing secret |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes | Stripe publishable key |
+| `STRIPE_PRICE_LIGHT_WEEKLY` | Yes | Stripe price ID for Light plan |
+| `STRIPE_PRICE_HEAVY_MONTHLY` | Yes | Stripe price ID for Heavy monthly |
+| `STRIPE_PRICE_HEAVY_YEARLY` | Yes | Stripe price ID for Heavy yearly |
+
+## Deploy to Vercel
+
+1. Push to GitHub
+2. Import project on [vercel.com](https://vercel.com)
+3. Add all environment variables
+4. Deploy
+5. Update Supabase redirect URLs and Stripe webhook URL to production domain

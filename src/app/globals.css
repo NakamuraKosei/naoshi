@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
+/*
+ * Naoshi デザイントークン
+ * design.md 第13章をTailwind v4の @theme 方式で定義
+ * グラデーションは使わず、フラットな単色のみ
+ */
+@theme {
+  /* カラー：プライマリ（ブランドカラー） */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-light: #eff6ff;
+  --color-primary-lighter: #f5f9ff;
+
+  /* カラー：サーフェス（背景面） */
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f5f9ff;
+  --color-surface-dark: #0f172a;
+
+  /* カラー：テキスト */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+  --color-text-on-dark: #f8fafc;
+
+  /* カラー：ボーダー */
+  --color-border: #e5e7eb;
+
+  /* カラー：セマンティック */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* 角丸（design.md 5.1） */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* 影：控えめに（design.md 5.2） */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.1);
+
+  /* フォントファミリー：layout.tsxでCSS変数として供給 */
+  --font-sans: var(--font-noto-sans-jp), var(--font-inter), "Noto Sans JP",
+    "Inter", system-ui, sans-serif;
+  --font-display: var(--font-inter), var(--font-noto-sans-jp), "Inter",
+    "Noto Sans JP", system-ui, sans-serif;
+}
+
+/*
+ * ベーススタイル：白背景・ダークテキストを明示
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-family: var(--font-sans);
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 見出しはプロポーショナル詰め（design.md 3.3） */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-feature-settings: "palt";
+  letter-spacing: 0;
+}
+
+/* フォーカスリング（design.md 5.3） */
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* prefers-reduced-motion 対応（design.md 11） */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,0 +1,1 @@
+# APIルート置き場。エージェントC（/api/humanize 等）とエージェントD（/api/stripe/* 等）が使用します。

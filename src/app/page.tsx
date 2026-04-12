@@ -1,65 +1,181 @@
-import Image from "next/image";
+import Link from "next/link";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { PricingPlans } from "@/components/marketing/pricing-plans";
+import { FaqList } from "@/components/marketing/faq-list";
+import { FeatureCard } from "@/components/marketing/feature-card";
+import { StepCard } from "@/components/marketing/step-card";
 
+/**
+ * ランディングページ（design.md 7.1）
+ *
+ * セクション構成（厳密）:
+ *  1. ヒーロー（白）
+ *  2. 特徴（primary-lighter）
+ *  3. 使い方（白）
+ *  4. 料金（primary-lighter）
+ *  5. FAQ（白）
+ *  6. CTAバナー（surface-dark）
+ *  7. フッター
+ */
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <SiteHeader />
+      <main className="flex-1">
+        {/* 1. ヒーロー（白背景 / py-24〜32 / max-w-3xl 中央寄せ） */}
+        <section className="bg-surface">
+          <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 py-24 text-center md:py-32">
+            <Badge variant="primary">日本語学術文ヒューマナイザー</Badge>
+            <h1 className="text-4xl font-bold leading-[1.15] tracking-tight text-text-primary md:text-[56px]">
+              AIで書いたレポートを、
+              <br />
+              ちゃんと人間の言葉に。
+            </h1>
+            <p className="max-w-2xl text-lg leading-[1.75] text-text-secondary">
+              日本の大学生のための、日本語特化ヒューマナイザー。
+              貼り付けてボタンを押すだけで、AI特有の硬い文体を自然な日本語に整えます。
+            </p>
+            <div className="flex flex-col items-center gap-4 sm:flex-row">
+              <Link href="/login">
+                <Button variant="primary" size="lg">
+                  無料ではじめる
+                </Button>
+              </Link>
+              <Link href="#how-it-works">
+                <Button variant="secondary" size="lg">
+                  使い方を見る
+                </Button>
+              </Link>
+            </div>
+
+            {/* ヒーロー下のスクリーンショット枠（MVPでは「準備中」プレースホルダー） */}
+            <div className="mt-12 w-full">
+              <div className="flex h-64 w-full items-center justify-center rounded-xl border border-border bg-primary-lighter text-text-muted md:h-80">
+                <span className="text-sm">変換画面のプレビューは準備中です</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2. 特徴セクション（primary-lighter / py-24 / 3カラム） */}
+        <section className="bg-primary-lighter">
+          <div className="mx-auto w-full max-w-6xl px-6 py-24">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-3xl font-semibold text-text-primary md:text-[32px]">
+                Naoshi が選ばれる理由
+              </h2>
+              <p className="mt-4 text-base leading-[1.75] text-text-secondary">
+                海外系ツールでは届かない、日本語レポートの自然さにこだわりました。
+              </p>
+            </div>
+            <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
+              <FeatureCard
+                title="日本語学術文に特化"
+                description="AI特有の定型冒頭や機械的な列挙を避け、日本語として自然な流れに整えます。"
+              />
+              <FeatureCard
+                title="参考文献を完全保護"
+                description="著者名・書名・年号・直接引用は一切改変しません。安心して提出できます。"
+              />
+              <FeatureCard
+                title="だ・である調 / ですます調"
+                description="学術レポートにも感想文にも。用途にあわせて文体を選べます。"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* 3. 使い方セクション（白 / py-24 / 3ステップ） */}
+        <section id="how-it-works" className="bg-surface">
+          <div className="mx-auto w-full max-w-6xl px-6 py-24">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-3xl font-semibold text-text-primary md:text-[32px]">
+                3ステップで、すぐに整う
+              </h2>
+              <p className="mt-4 text-base leading-[1.75] text-text-secondary">
+                難しい設定は不要です。貼り付けてボタンを押すだけ。
+              </p>
+            </div>
+            <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
+              <StepCard
+                step={1}
+                title="貼り付ける"
+                description="AIで書いたレポートの本文を、入力欄にそのまま貼り付けます。"
+              />
+              <StepCard
+                step={2}
+                title="なおすボタンを押す"
+                description="文体を選んで「なおす」をクリック。数秒で自然な日本語に変わります。"
+              />
+              <StepCard
+                step={3}
+                title="コピーして使う"
+                description="出力された文章をコピーして、そのままレポートに貼り付けるだけです。"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* 4. 料金セクション（primary-lighter / py-24 / 4プラン） */}
+        <section id="pricing" className="bg-primary-lighter">
+          <div className="mx-auto w-full max-w-6xl px-6 py-24">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-3xl font-semibold text-text-primary md:text-[32px]">
+                シンプルな料金体系
+              </h2>
+              <p className="mt-4 text-base leading-[1.75] text-text-secondary">
+                必要な分だけ、無理なく使えるプランを用意しました。
+              </p>
+            </div>
+            <div className="mt-16">
+              <PricingPlans />
+            </div>
+            <p className="mt-8 text-center text-sm text-text-muted">
+              表示価格は税込です。プラン変更・解約はいつでも行えます。
+            </p>
+          </div>
+        </section>
+
+        {/* 5. FAQ（白 / py-24 / max-w-3xl / アコーディオン） */}
+        <section className="bg-surface">
+          <div className="mx-auto w-full max-w-3xl px-6 py-24">
+            <div className="text-center">
+              <h2 className="text-3xl font-semibold text-text-primary md:text-[32px]">
+                よくある質問
+              </h2>
+              <p className="mt-4 text-base leading-[1.75] text-text-secondary">
+                気になるポイントをまとめました。
+              </p>
+            </div>
+            <div className="mt-12">
+              <FaqList />
+            </div>
+          </div>
+        </section>
+
+        {/* 6. CTAバナー（surface-dark / py-20 / 白文字＋白ボタン） */}
+        <section className="bg-surface-dark">
+          <div className="mx-auto w-full max-w-3xl px-6 py-20 text-center">
+            <h2 className="text-3xl font-semibold leading-tight text-text-on-dark md:text-4xl">
+              今日からレポートを、自然な日本語に整えよう。
+            </h2>
+            <p className="mt-4 text-base leading-[1.75] text-text-on-dark/80">
+              無料プランなら、メール登録だけですぐに試せます。
+            </p>
+            <div className="mt-10">
+              <Link href="/login">
+                <Button variant="cta" size="lg">
+                  無料ではじめる
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
-    </div>
+      <SiteFooter />
+    </>
   );
 }

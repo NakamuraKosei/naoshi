@@ -15,6 +15,7 @@ type LimitType = "count" | "chars";
 type HumanizeResponse = {
   output: string;
   durationMs: number;
+  modificationPoints?: string[];
 };
 
 // Server Component から渡されるプラン情報
@@ -45,6 +46,7 @@ export function AppClient({
   const [errorMessage, setErrorMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [modificationPoints, setModificationPoints] = useState<string[]>([]);
   // サクセスバナー表示（自動消去）
   const [showSuccess, setShowSuccess] = useState(checkoutSuccess);
   if (checkoutSuccess && showSuccess) {
@@ -78,6 +80,7 @@ export function AppClient({
 
     setErrorMessage("");
     setOutput("");
+    setModificationPoints([]);
     setIsLoading(true);
 
     try {
@@ -103,6 +106,7 @@ export function AppClient({
 
       const data = (await res.json()) as HumanizeResponse;
       setOutput(data.output);
+      setModificationPoints(data.modificationPoints ?? []);
     } catch {
       setErrorMessage("うまく変換できませんでした。もう一度お試しください。");
     } finally {
@@ -241,6 +245,29 @@ export function AppClient({
             </div>
           </section>
         </div>
+
+        {/* 修正ポイント（変換完了後のみ表示） */}
+        {modificationPoints.length > 0 && (
+          <div className="mt-6">
+            <details open className="rounded-xl border border-border bg-primary-lighter p-6">
+              <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-text-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                  <path d="m15 5 4 4" />
+                </svg>
+                修正ポイント
+              </summary>
+              <ul className="mt-4 space-y-2">
+                {modificationPoints.map((point, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm leading-[1.75] text-text-secondary">
+                    <span className="mt-1 block h-1.5 w-1.5 flex-none rounded-full bg-primary" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </div>
+        )}
 
         {/* なおすボタン */}
         <div className="mt-8 flex justify-center">

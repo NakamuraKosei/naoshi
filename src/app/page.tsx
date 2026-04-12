@@ -1,18 +1,17 @@
-import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { PricingPlans } from "@/components/marketing/pricing-plans";
 import { FaqList } from "@/components/marketing/faq-list";
 import { FeatureCard } from "@/components/marketing/feature-card";
 import { StepCard } from "@/components/marketing/step-card";
+import { HeroConverter } from "@/components/hero-converter";
 
 /**
  * ランディングページ（design.md 7.1）
  *
  * セクション構成（厳密）:
- *  1. ヒーロー（白）
+ *  1. ヒーロー（白）— ダイレクト変換フロー
  *  2. 特徴（primary-lighter）
  *  3. 使い方（白）
  *  4. 料金（primary-lighter）
@@ -25,40 +24,8 @@ export default function Home() {
     <>
       <SiteHeader />
       <main className="flex-1">
-        {/* 1. ヒーロー（白背景 / py-24〜32 / max-w-3xl 中央寄せ） */}
-        <section className="bg-surface">
-          <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 py-24 text-center md:py-32">
-            <Badge variant="primary">日本語学術文ヒューマナイザー</Badge>
-            <h1 className="text-4xl font-bold leading-[1.15] tracking-tight text-text-primary md:text-[56px]">
-              AIで書いたレポートを、
-              <br />
-              ちゃんと人間の言葉に。
-            </h1>
-            <p className="max-w-2xl text-lg leading-[1.75] text-text-secondary">
-              日本の大学生のための、日本語特化ヒューマナイザー。
-              貼り付けてボタンを押すだけで、AI特有の硬い文体を自然な日本語に整えます。
-            </p>
-            <div className="flex flex-col items-center gap-4 sm:flex-row">
-              <Link href="/login">
-                <Button variant="primary" size="lg">
-                  無料ではじめる
-                </Button>
-              </Link>
-              <Link href="#how-it-works">
-                <Button variant="secondary" size="lg">
-                  使い方を見る
-                </Button>
-              </Link>
-            </div>
-
-            {/* ヒーロー下のスクリーンショット枠（MVPでは「準備中」プレースホルダー） */}
-            <div className="mt-12 w-full">
-              <div className="flex h-64 w-full items-center justify-center rounded-xl border border-border bg-primary-lighter text-text-muted md:h-80">
-                <span className="text-sm">変換画面のプレビューは準備中です</span>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* 1. ヒーロー（白背景）— インタラクティブ変換UI */}
+        <HeroConverter />
 
         {/* 2. 特徴セクション（primary-lighter / py-24 / 3カラム） */}
         <section className="bg-primary-lighter">
@@ -166,11 +133,11 @@ export default function Home() {
               無料プランなら、メール登録だけですぐに試せます。
             </p>
             <div className="mt-10">
-              <Link href="/login">
+              <a href="#hero">
                 <Button variant="cta" size="lg">
                   無料ではじめる
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </section>

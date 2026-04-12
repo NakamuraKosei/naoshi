@@ -45,9 +45,11 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  // 保護ルート: /app 以下と /account
+  // 保護ルート: /app, /account, /history
   const isProtected =
-    pathname.startsWith("/app") || pathname.startsWith("/account");
+    pathname.startsWith("/app") ||
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/history");
 
   if (!user && isProtected) {
     // 未ログインなら /login にリダイレクト

@@ -62,6 +62,39 @@ function isValidBody(
 // Anthropic キー取得前のフロー確認用。本番では必ず OFF にする。
 const IS_MOCK = process.env.MOCK_HUMANIZE === "1";
 
+/**
+ * Claude APIの出力からJSON構造を抽出する。
+ * JSONパースに失敗した場合はテキスト全体を converted_text として扱う（フォールバック）。
+ */
+function parseStructuredOutput(raw: string): {
+  convertedText: string;
+  modificationPoints: string[];
+} {
+  try {
+    // ```json ... ``` で囲まれている場合を考慮
+    const jsonMatch = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const jsonStr = jsonMatch[1] ?? jsonMatch[0];
+      const parsed = JSON.parse(jsonStr) as {
+        converted_text?: string;
+        modification_points?: string[];
+      };
+      if (parsed.converted_text) {
+        return {
+          convertedText: parsed.converted_text.trim(),
+          modificationPoints: Array.isArray(parsed.modification_points)
+            ? parsed.modification_points
+            : [],
+        };
+      }
+    }
+  } catch {
+    // JSONパース失敗 → フォールバック
+  }
+  // フォールバック: テキスト全体を変換結果として扱い、修正ポイントは空
+  return { convertedText: raw, modificationPoints: [] };
+}
+
 export async function POST(request: Request) {
   const startedAt = Date.now();
 
@@ -134,7 +167,7 @@ export async function POST(request: Request) {
     try {
       const basePrompt = await loadHumanizeSystemPrompt();
       // 文体指定を末尾に1行追加
-      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}`;
+      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}\n\n---\n\n## 出力フォーマット\n\n以下のJSON形式で出力してください。JSONのみを出力し、他のテキストは含めないでください。\n\n\`\`\`json\n{\n  "converted_text": "変換後の本文をここに記述",\n  "modification_points": [\n    "修正ポイント1",\n    "修正ポイント2",\n    "修正ポイント3"\n  ]\n}\n\`\`\`\n\n- converted_text: 変換後の本文（従来通りのルールで書き換えた全文）\n- modification_points: 今回の書き換えで行った修正の要約を3〜5個、箇条書きで記述。具体的にどの表現をどう変えたかがわかるように書くこと。`;
     } catch (err) {
       // 本文はログに残さない
       console.error(
@@ -154,11 +187,17 @@ export async function POST(request: Request) {
   try {
     let output: string;
 
+    // 修正ポイント
+    let modificationPoints: string[] = [];
+
     if (IS_MOCK) {
-      // ダミー応答: 入力テキストに接頭辞を付けて返すだけ
-      // フロー確認用のため、実際の変換は行わない
+      // ダミー応答
       await new Promise((r) => setTimeout(r, 600));
       output = `【モック変換・${styleLabel(body.style)}】\n\n${text}\n\n（※ MOCK_HUMANIZE=1 のため実際の変換は行っていません）`;
+      modificationPoints = [
+        "モックモードのため実際の変換は行っていません",
+        "本番環境では MOCK_HUMANIZE を削除してください",
+      ];
     } else {
       const client = new Anthropic({ apiKey: apiKey! });
       const message = await client.messages.create({
@@ -174,7 +213,7 @@ export async function POST(request: Request) {
       });
 
       // レスポンスからテキストブロックのみを連結
-      output = message.content
+      const rawOutput = message.content
         .filter(
           (block): block is Extract<typeof block, { type: "text" }> =>
             block.type === "text",
@@ -182,6 +221,11 @@ export async function POST(request: Request) {
         .map((block) => block.text)
         .join("")
         .trim();
+
+      // JSON形式のレスポンスをパース
+      const parsed = parseStructuredOutput(rawOutput);
+      output = parsed.convertedText;
+      modificationPoints = parsed.modificationPoints;
     }
 
     if (output.length === 0) {
@@ -195,7 +239,6 @@ export async function POST(request: Request) {
     const durationMs = Date.now() - startedAt;
 
     // --- 6. 使用実績を usage テーブルに記録 ---
-    //     （入力テキスト本文は保存しない、プライバシー保護）
     try {
       await recordUsage({
         inputChars: text.length,
@@ -204,14 +247,13 @@ export async function POST(request: Request) {
         durationMs,
       });
     } catch (err) {
-      // 記録失敗は変換結果の返却を止めない
       console.error(
         "[humanize] failed to record usage:",
         err instanceof Error ? err.message : "unknown",
       );
     }
 
-    return Response.json({ output, durationMs });
+    return Response.json({ output, durationMs, modificationPoints });
   } catch (err) {
     // 本文（text）はログに出さない。エラー種別のみ。
     console.error(

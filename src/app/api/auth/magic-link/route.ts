@@ -39,9 +39,11 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
 
-    // コールバック URL（Magic Link クリック後に飛ぶ先）
+    // コールバック URL
+    // server-side API route ではなく client-side page にリダイレクトする
+    // (PKCE code_verifier cookie がブラウザ側で確実に参照できるため)
     const origin = new URL(request.url).origin;
-    const redirectTo = `${origin}/api/auth/callback`;
+    const redirectTo = `${origin}/auth/callback`;
 
     // Magic Link を送信
     const { error } = await supabase.auth.signInWithOtp({

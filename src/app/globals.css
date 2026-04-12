@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/* スムーススクロール（アンカーリンク遷移時） */
+html {
+  scroll-behavior: smooth;
+}
+
+/* アクセシビリティ: 動きを減らす設定のユーザーには即座に遷移 */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 /*
  * Naoshi デザイントークン
  * design.md 第13章をTailwind v4の @theme 方式で定義

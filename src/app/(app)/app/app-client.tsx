@@ -50,6 +50,8 @@ export function AppClient({
   const [copied, setCopied] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [modificationPoints, setModificationPoints] = useState<string[]>([]);
+  // 変換完了後の確認メッセージ表示フラグ
+  const [showCompleteOverlay, setShowCompleteOverlay] = useState(false);
   // サクセスバナー表示（自動消去）
   const [showSuccess, setShowSuccess] = useState(checkoutSuccess);
   if (checkoutSuccess && showSuccess) {
@@ -110,6 +112,8 @@ export function AppClient({
       const data = (await res.json()) as HumanizeResponse;
       setOutput(data.output);
       setModificationPoints(data.modificationPoints ?? []);
+      // 完了オーバーレイを表示（ボタン or 背景タップで閉じる）
+      setShowCompleteOverlay(true);
     } catch {
       setErrorMessage("うまく変換できませんでした。もう一度お試しください。");
     } finally {
@@ -297,6 +301,14 @@ export function AppClient({
         </div>
       </main>
 
+      {/* なおし中オーバーレイ */}
+      {isLoading && <ConvertingOverlay />}
+
+      {/* 完了オーバーレイ */}
+      {showCompleteOverlay && (
+        <CompleteOverlay onClose={() => setShowCompleteOverlay(false)} />
+      )}
+
       {/* 超過モーダル */}
       {showLimitModal && (
         <LimitExceededModal
@@ -379,6 +391,56 @@ function StyleSelector({ value, onChange }: { value: Style; onChange: (v: Style)
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/** なおし中オーバーレイ */
+function ConvertingOverlay() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.4)] backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-5 rounded-2xl bg-surface px-12 py-10 shadow-lg">
+        {/* 回転アニメーション */}
+        <div className="relative h-12 w-12">
+          <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-border border-t-primary" />
+        </div>
+        <p className="text-lg font-bold text-text-primary">なおし中…</p>
+        <p className="text-sm text-text-muted">
+          文章を整えています。少々お待ちください。
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** 完了オーバーレイ（内容確認を促す） */
+function CompleteOverlay({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.4)] backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="flex flex-col items-center gap-4 rounded-2xl bg-surface px-12 py-10 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* チェックマーク */}
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#10B981]/10">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <p className="text-lg font-bold text-text-primary">変換が完了しました</p>
+        <p className="max-w-[280px] text-center text-sm leading-relaxed text-text-secondary">
+          内容に誤りがないか、必ず確認してからご利用ください。
+        </p>
+        <button
+          onClick={onClose}
+          className="mt-2 rounded-full bg-primary px-8 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+        >
+          確認する
+        </button>
+      </div>
     </div>
   );
 }

@@ -104,7 +104,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               無料で登録して使ってみる
             </h2>
             <p className="mt-2 text-sm leading-[1.75] text-text-secondary">
-              メールアドレスで登録すると、月3回まで無料で変換できます。
+              メールアドレスで登録すると、月3回まで無料で利用できます。
               パスワードは不要です。
             </p>
 

@@ -16,14 +16,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 |---|---|
 | `requirements.md` | 要件定義書。機能要件・料金プラン・データモデル・マイルストーン |
 | `design.md` | デザイン定義。カラー・タイポ・コンポーネント・画面構成 |
-| `prompts/humanize-system-prompt.md` | 変換エンジンのシステムプロンプト本体（ヒューマナイザー動作の真実の情報源） |
+| `prompts/humanize-system-prompt-standard.md` | 変換エンジン：品質重視モード（標準）のプロンプト |
+| `prompts/humanize-system-prompt-evasion.md` | 変換エンジン：検出回避モード（AI対策強化）のプロンプト |
 | `future-features.md` | 将来機能メモ。MVPスコープ外の機能はここに書く |
 
 ## コーディングルール
 
 1. **コードコメントは日本語で書くこと**
 2. **変数名・関数名・ファイル名は英語（ケバブケース or キャメルケース）**
-3. **変換エンジンのプロンプトは `prompts/humanize-system-prompt.md` から読み込むこと**（コード内にハードコードしない）
+3. **変換エンジンのプロンプトは `prompts/humanize-system-prompt-standard.md` / `prompts/humanize-system-prompt-evasion.md` から読み込むこと**（コード内にハードコードしない）
 4. **Tailwind のカラー・余白は `design.md` のトークンに従うこと**
 5. **UIコピーは `design.md` 第9章のトーンに従うこと**（「なおす」「整える」など）
 

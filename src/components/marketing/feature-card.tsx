@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
  */
 type FeatureCardProps = {
   title: string;
-  description: string;
+  description: React.ReactNode;
 };
 
 export function FeatureCard({ title, description }: FeatureCardProps) {

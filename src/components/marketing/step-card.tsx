@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 type StepCardProps = {
   step: number;
   title: string;
-  description: string;
+  description: React.ReactNode;
 };
 
 export function StepCard({ step, title, description }: StepCardProps) {

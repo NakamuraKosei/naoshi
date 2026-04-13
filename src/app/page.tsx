@@ -41,7 +41,7 @@ export default function Home() {
             <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
               <FeatureCard
                 title="日本語学術文に特化"
-                description="AI特有の定型冒頭や機械的な列挙を避け、日本語として自然な流れに整えます。"
+                description={<>AI特有の定型冒頭や機械的な列挙を避け、<br />日本語として自然な流れに整えます。</>}
               />
               <FeatureCard
                 title="参考文献を完全保護"
@@ -49,7 +49,7 @@ export default function Home() {
               />
               <FeatureCard
                 title="だ・である調 / ですます調"
-                description="学術レポートにも感想文にも。用途にあわせて文体を選べます。"
+                description={<>学術レポートにも感想文にも。<br />用途にあわせて文体を選べます。</>}
               />
             </div>
           </div>
@@ -75,12 +75,12 @@ export default function Home() {
               <StepCard
                 step={2}
                 title="なおすボタンを押す"
-                description="文体を選んで「なおす」をクリック。数秒で自然な日本語に変わります。"
+                description={<>文体を選んで「なおす」をクリック。<br />数秒で自然な日本語に変わります。</>}
               />
               <StepCard
                 step={3}
                 title="コピーして使う"
-                description="出力された文章をコピーして、そのままレポートに貼り付けるだけです。"
+                description={<>出力された文章をコピーして、<br />そのままレポートに貼り付けるだけです。</>}
               />
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function Home() {
         <section className="bg-surface-dark">
           <div className="mx-auto w-full max-w-3xl px-6 py-20 text-center">
             <h2 className="text-3xl font-semibold leading-tight text-text-on-dark md:text-4xl">
-              もうAIチェッカーは怖くない
+              もうAIチェッカーは怖くない。
             </h2>
             <p className="mt-4 text-base leading-[1.75] text-text-on-dark/80">
               無料プランなら、メール登録だけですぐに試せます。

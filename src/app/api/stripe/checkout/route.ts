@@ -46,7 +46,20 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     const stripe = getStripe();
-    const origin = new URL(request.url).origin;
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      new URL(request.url).origin;
+
+    // 既存サブスクリプションがあればキャンセル（二重課金防止）
+    if (profile?.stripe_customer_id) {
+      const existingSubs = await stripe.subscriptions.list({
+        customer: profile.stripe_customer_id,
+        status: "active",
+      });
+      for (const sub of existingSubs.data) {
+        await stripe.subscriptions.cancel(sub.id);
+      }
+    }
 
     // Checkout セッション生成
     const session = await stripe.checkout.sessions.create({

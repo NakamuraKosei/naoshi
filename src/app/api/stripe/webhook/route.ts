@@ -120,13 +120,34 @@ export async function POST(request: Request) {
           .eq("stripe_subscription_id", sub.id);
 
         if (userId) {
-          await admin
-            .from("profiles")
-            .update({
-              plan: "free",
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", userId);
+          // 他にアクティブなサブスクが残っていないか確認（二重課金対策）
+          const { data: activeSubs } = await admin
+            .from("subscriptions")
+            .select("plan")
+            .eq("user_id", userId)
+            .in("status", ["active", "trialing"])
+            .neq("stripe_subscription_id", sub.id)
+            .limit(1);
+
+          if (activeSubs && activeSubs.length > 0) {
+            // 他のアクティブなサブスクがあればそのプランを維持
+            await admin
+              .from("profiles")
+              .update({
+                plan: activeSubs[0].plan,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", userId);
+          } else {
+            // アクティブなサブスクがなければ無料に戻す
+            await admin
+              .from("profiles")
+              .update({
+                plan: "free",
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", userId);
+          }
         }
         break;
       }

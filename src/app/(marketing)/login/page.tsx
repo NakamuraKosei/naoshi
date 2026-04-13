@@ -74,9 +74,6 @@ export default function LoginPage() {
             <p className="mt-3 text-sm leading-[1.75] text-text-secondary">
               <span className="font-medium text-text-primary">{email}</span> にログイン用のリンクを送りました。
             </p>
-            <Link href="/" className="mt-6 inline-block text-sm text-text-muted transition-colors hover:text-primary">
-              ← トップに戻る
-            </Link>
           </div>
         ) : (
           <div className="mt-8">

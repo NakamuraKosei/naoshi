@@ -126,8 +126,8 @@ export default function Home() {
         {/* 6. CTAバナー（surface-dark / py-20 / 白文字＋白ボタン） */}
         <section className="bg-surface-dark">
           <div className="mx-auto w-full max-w-3xl px-6 py-20 text-center">
-            <h2 className="text-3xl font-semibold leading-tight text-text-on-dark md:text-4xl">
-              今日からレポートを、自然な日本語に整えよう。
+            <h2 className="text-[26px] font-semibold leading-[1.3] text-text-on-dark sm:text-3xl md:text-4xl md:leading-tight">
+              今からAIのレポートを<br className="hidden sm:block" />自然な日本語になおそう！
             </h2>
             <p className="mt-4 text-base leading-[1.75] text-text-on-dark/80">
               無料プランなら、メール登録だけですぐに試せます。

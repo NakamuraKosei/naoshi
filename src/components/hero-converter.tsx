@@ -176,7 +176,7 @@ export function HeroConverter() {
               ちゃんと人間の言葉に。
             </h1>
             <p className="mt-4 text-lg leading-[1.75] text-text-secondary">
-              貼り付けて「なおす」を押すだけ。日本語レポートを自然な文章に整えます。
+              貼り付けて「なおす」を押すだけ。<br className="sm:hidden" />AIのレポートを自然な文章になおします。
             </p>
           </div>
 

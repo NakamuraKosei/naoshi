@@ -9,6 +9,8 @@ import { cn } from "@/lib/cn";
 
 // 文体の型定義
 type Style = "dearu" | "desumasu";
+// モードの型定義（標準 / AI対策強化）
+type Mode = "standard" | "evasion";
 type LimitType = "count" | "chars";
 
 // API レスポンスの型
@@ -42,6 +44,7 @@ export function AppClient({
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [style, setStyle] = useState<Style>("dearu");
+  const [mode, setMode] = useState<Mode>("standard");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [copied, setCopied] = useState(false);
@@ -87,7 +90,7 @@ export function AppClient({
       const res = await fetch("/api/humanize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: input, style }),
+        body: JSON.stringify({ text: input, style, mode }),
       });
 
       if (res.status === 403) {
@@ -148,7 +151,10 @@ export function AppClient({
               1回あたり最大 {maxChars.toLocaleString()} 字
             </p>
           </div>
-          <StyleSelector value={style} onChange={setStyle} />
+          <div className="flex flex-col items-end gap-2">
+            <ModeSelector value={mode} onChange={setMode} />
+            <StyleSelector value={style} onChange={setStyle} />
+          </div>
         </div>
 
         {/* プランアップグレード完了バナー */}
@@ -355,6 +361,36 @@ function StyleSelector({ value, onChange }: { value: Style; onChange: (v: Style)
   ];
   return (
     <div role="radiogroup" aria-label="文体の選択" className="inline-flex items-center rounded-full border border-border bg-surface p-1">
+      {options.map((opt) => {
+        const selected = value === opt.key;
+        return (
+          <button
+            key={opt.key}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => onChange(opt.key)}
+            className={cn(
+              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              selected ? "bg-primary text-white" : "text-text-secondary hover:text-primary",
+            )}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** モードセレクタ（標準 / AI対策強化） */
+function ModeSelector({ value, onChange }: { value: Mode; onChange: (v: Mode) => void }) {
+  const options: { key: Mode; label: string }[] = [
+    { key: "standard", label: "標準" },
+    { key: "evasion", label: "AI対策強化" },
+  ];
+  return (
+    <div role="radiogroup" aria-label="変換モードの選択" className="inline-flex items-center rounded-full border border-border bg-surface p-1">
       {options.map((opt) => {
         const selected = value === opt.key;
         return (

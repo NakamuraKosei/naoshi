@@ -40,9 +40,11 @@ export async function POST(request: Request) {
     const supabase = await createClient();
 
     // コールバック URL
-    // server-side API route ではなく client-side page にリダイレクトする
-    // (PKCE code_verifier cookie がブラウザ側で確実に参照できるため)
-    const origin = new URL(request.url).origin;
+    // NEXT_PUBLIC_SITE_URL が設定されていればそちらを優先（本番URL固定）
+    // 未設定の場合はリクエストのoriginにフォールバック
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      new URL(request.url).origin;
     const redirectTo = `${origin}/auth/callback`;
 
     // Magic Link を送信

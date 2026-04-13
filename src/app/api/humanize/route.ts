@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { loadHumanizeSystemPrompt } from "@/lib/humanize/load-prompt";
+import { loadHumanizeSystemPrompt, type HumanizeMode } from "@/lib/humanize/load-prompt";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
 import { rateLimit } from "@/lib/rate-limit";
@@ -10,7 +10,7 @@ import { rateLimit } from "@/lib/rate-limit";
  * 変換エンジンのAPIルート（Next.js 16 App Router / Route Handler）。
  *
  * リクエスト:
- *   POST { text: string, style: "dearu" | "desumasu" }
+ *   POST { text: string, style: "dearu" | "desumasu", mode?: "standard" | "evasion" }
  *
  * レスポンス:
  *   200 { output: string, durationMs: number }
@@ -48,14 +48,19 @@ function styleLabel(style: Style): string {
 
 /**
  * リクエストボディの型ガード。
+ * mode は省略可（デフォルト: "standard"）。
  */
 function isValidBody(
   body: unknown,
-): body is { text: string; style: Style } {
+): body is { text: string; style: Style; mode?: HumanizeMode } {
   if (typeof body !== "object" || body === null) return false;
   const record = body as Record<string, unknown>;
   if (typeof record.text !== "string") return false;
   if (record.style !== "dearu" && record.style !== "desumasu") return false;
+  // mode は省略可。指定時は "standard" | "evasion" のみ許容
+  if (record.mode !== undefined && record.mode !== "standard" && record.mode !== "evasion") {
+    return false;
+  }
   return true;
 }
 
@@ -177,7 +182,9 @@ export async function POST(request: Request) {
   let systemPrompt: string;
   if (!IS_MOCK) {
     try {
-      const basePrompt = await loadHumanizeSystemPrompt();
+      // モード判定（省略時は "standard"）
+      const mode: HumanizeMode = body.mode ?? "standard";
+      const basePrompt = await loadHumanizeSystemPrompt(mode);
       // 文体指定を末尾に1行追加
       systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}\n\n---\n\n## 出力フォーマット\n\n以下のJSON形式で出力してください。JSONのみを出力し、他のテキストは含めないでください。\n\n\`\`\`json\n{\n  "converted_text": "変換後の本文をここに記述",\n  "modification_points": [\n    "修正ポイント1",\n    "修正ポイント2",\n    "修正ポイント3"\n  ]\n}\n\`\`\`\n\n- converted_text: 変換後の本文（従来通りのルールで書き換えた全文）\n- modification_points: 今回の書き換えで行った修正の要約を3〜5個、箇条書きで記述。具体的にどの表現をどう変えたかがわかるように書くこと。`;
     } catch (err) {

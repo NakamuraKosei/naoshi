@@ -170,9 +170,9 @@ export function HeroConverter() {
         <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-24">
           {/* タグライン */}
           <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-bold leading-[1.15] tracking-tight text-text-primary md:text-[56px]">
+            <h1 className="text-[28px] font-bold leading-[1.3] tracking-tight text-text-primary sm:text-4xl sm:leading-[1.15] md:text-[56px]">
               AIで書いたレポートを、
-              <br />
+              <br className="hidden sm:block" />
               ちゃんと人間の言葉に。
             </h1>
             <p className="mt-4 text-lg leading-[1.75] text-text-secondary">

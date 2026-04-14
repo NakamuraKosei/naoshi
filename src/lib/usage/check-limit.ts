@@ -60,10 +60,10 @@ export async function checkLimit(
     uid = user.id;
   }
 
-  // プロフィールからプラン取得
+  // プロフィールからプラン・プラン変更日を取得
   const { data: profile } = await supabase
     .from("profiles")
-    .select("plan")
+    .select("plan, plan_changed_at")
     .eq("id", uid)
     .maybeSingle();
 
@@ -72,6 +72,10 @@ export async function checkLimit(
 
   // プランに応じたリセット起点（週次 or 月次）
   const periodStart = getPeriodStart(rule.resetCycle);
+
+  // プラン変更日以降の使用量のみカウント（プラン変更でリセット）
+  const planChangedAt = profile?.plan_changed_at ? new Date(profile.plan_changed_at) : null;
+  const effectiveStart = planChangedAt && planChangedAt > periodStart ? planChangedAt : periodStart;
 
   // 制限方式に応じて使用量を計算
   let used: number;
@@ -82,7 +86,7 @@ export async function checkLimit(
       .from("usage")
       .select("id", { count: "exact", head: true })
       .eq("user_id", uid)
-      .gte("used_at", periodStart.toISOString());
+      .gte("used_at", effectiveStart.toISOString());
 
     used = count ?? 0;
   } else {
@@ -91,7 +95,7 @@ export async function checkLimit(
       .from("usage")
       .select("input_chars")
       .eq("user_id", uid)
-      .gte("used_at", periodStart.toISOString());
+      .gte("used_at", effectiveStart.toISOString());
 
     used = (data ?? []).reduce((sum, row) => sum + (row.input_chars ?? 0), 0);
   }

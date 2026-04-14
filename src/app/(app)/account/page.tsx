@@ -72,10 +72,10 @@ export default async function AccountPage() {
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-6 py-12">
         {/* ページ見出し */}
-        <div className="mb-8 flex items-start justify-between gap-4">
+        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-text-primary">マイページ</h1>
-            <p className="mt-2 text-text-secondary">
+            <h1 className="text-2xl font-bold text-text-primary sm:text-3xl">マイページ</h1>
+            <p className="mt-2 text-sm text-text-secondary sm:text-base">
               プランの状態と使用状況を確認できます。
             </p>
           </div>

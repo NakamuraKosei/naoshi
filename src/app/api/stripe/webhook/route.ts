@@ -53,12 +53,14 @@ export async function POST(request: Request) {
             : session.customer?.id;
 
         if (userId && customerId) {
+          const now = new Date().toISOString();
           await admin
             .from("profiles")
             .update({
               stripe_customer_id: customerId,
               plan: plan ?? "free",
-              updated_at: new Date().toISOString(),
+              plan_changed_at: now,
+              updated_at: now,
             })
             .eq("id", userId);
         }
@@ -99,11 +101,13 @@ export async function POST(request: Request) {
           // アクティブ系ステータスなら profiles のプランも更新
           const isActive =
             sub.status === "active" || sub.status === "trialing";
+          const now = new Date().toISOString();
           await admin
             .from("profiles")
             .update({
               plan: isActive ? plan : "free",
-              updated_at: new Date().toISOString(),
+              plan_changed_at: now,
+              updated_at: now,
             })
             .eq("id", userId);
         }
@@ -129,13 +133,15 @@ export async function POST(request: Request) {
             .neq("stripe_subscription_id", sub.id)
             .limit(1);
 
+          const now = new Date().toISOString();
           if (activeSubs && activeSubs.length > 0) {
             // 他のアクティブなサブスクがあればそのプランを維持
             await admin
               .from("profiles")
               .update({
                 plan: activeSubs[0].plan,
-                updated_at: new Date().toISOString(),
+                plan_changed_at: now,
+                updated_at: now,
               })
               .eq("id", userId);
           } else {
@@ -144,7 +150,8 @@ export async function POST(request: Request) {
               .from("profiles")
               .update({
                 plan: "free",
-                updated_at: new Date().toISOString(),
+                plan_changed_at: now,
+                updated_at: now,
               })
               .eq("id", userId);
           }

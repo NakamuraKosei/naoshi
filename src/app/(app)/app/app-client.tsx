@@ -41,8 +41,8 @@ export function AppClient({
   limitType,
   periodLimit,
   resetCycle,
-  used,
-  remaining,
+  used: initialUsed,
+  remaining: initialRemaining,
   planLabel,
   checkoutSuccess = false,
 }: AppClientProps) {
@@ -64,9 +64,13 @@ export function AppClient({
     setTimeout(() => setShowSuccess(false), 5000);
   }
 
+  // 使用量をクライアント側でトラッキング（変換成功後に即時反映するため）
+  const [currentUsed, setCurrentUsed] = useState(initialUsed);
+  const [currentRemaining, setCurrentRemaining] = useState(initialRemaining);
+
   const charCount = input.length;
   const isOverLimit = charCount > maxChars;
-  const isQuotaExhausted = remaining <= 0;
+  const isQuotaExhausted = currentRemaining <= 0;
 
   const isSubmitDisabled = useMemo(
     () => isLoading || input.trim().length === 0 || isOverLimit || isQuotaExhausted,
@@ -76,11 +80,11 @@ export function AppClient({
   // 残量の表示テキスト
   const remainingLabel = useMemo(() => {
     if (limitType === "count") {
-      return `残り ${remaining} / ${periodLimit} 回`;
+      return `残り ${currentRemaining} / ${periodLimit} 回`;
     }
     const periodLabel = resetCycle === "weekly" ? "今週" : "今月";
-    return `残り ${remaining.toLocaleString()} / ${periodLimit.toLocaleString()} 字（${periodLabel}）`;
-  }, [limitType, remaining, periodLimit, resetCycle]);
+    return `残り ${currentRemaining.toLocaleString()} / ${periodLimit.toLocaleString()} 字（${periodLabel}）`;
+  }, [limitType, currentRemaining, periodLimit, resetCycle]);
 
   async function handleHumanize() {
     // 超過時はモーダルを出す
@@ -118,6 +122,19 @@ export function AppClient({
       const data = (await res.json()) as HumanizeResponse;
       setOutput(data.output);
       setModificationPoints(data.modificationPoints ?? []);
+
+      // 使用量をクライアント側で即時更新
+      if (limitType === "count") {
+        // 回数ベース: 1回使用
+        setCurrentUsed((prev) => prev + 1);
+        setCurrentRemaining((prev) => Math.max(0, prev - 1));
+      } else {
+        // 文字数ベース: 入力文字数分を加算
+        const inputChars = input.trim().length;
+        setCurrentUsed((prev) => prev + inputChars);
+        setCurrentRemaining((prev) => Math.max(0, prev - inputChars));
+      }
+
       // 完了オーバーレイを表示（ボタン or 背景タップで閉じる）
       setShowCompleteOverlay(true);
     } catch {
@@ -146,7 +163,7 @@ export function AppClient({
         {/* 画面見出し + 文体セレクタ */}
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-text-primary md:text-3xl">
+            <h1 className="text-xl font-bold text-text-primary md:text-3xl">
               AIっぽさのない、自然なレポートへ。
             </h1>
             <p className="mt-1 text-sm text-text-secondary">
@@ -161,7 +178,7 @@ export function AppClient({
               1回あたり最大 {maxChars.toLocaleString()} 字
             </p>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-wrap items-center gap-2 md:flex-col md:items-end">
             <ModeSelector value={mode} onChange={setMode} />
             <StyleSelector value={style} onChange={setStyle} />
           </div>
@@ -285,8 +302,8 @@ export function AppClient({
           </div>
         )}
 
-        {/* なおすボタン */}
-        <div className="mt-8 flex justify-center">
+        {/* なおすボタン（デスクトップ） */}
+        <div className="mt-8 hidden justify-center md:flex">
           <Button
             variant="primary"
             size="lg"
@@ -305,7 +322,31 @@ export function AppClient({
             )}
           </Button>
         </div>
+
+        {/* モバイル固定ボタンのスペーサー */}
+        <div className="h-20 md:hidden" />
       </main>
+
+      {/* なおすボタン（モバイル固定） */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface px-6 py-3 md:hidden">
+        <Button
+          variant="primary"
+          size="lg"
+          className="w-full py-3"
+          onClick={handleHumanize}
+          disabled={isSubmitDisabled}
+          aria-busy={isLoading}
+        >
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <LoadingDot />
+              変換中…
+            </span>
+          ) : (
+            "なおす"
+          )}
+        </Button>
+      </div>
 
       {/* なおし中オーバーレイ */}
       {isLoading && <ConvertingOverlay />}

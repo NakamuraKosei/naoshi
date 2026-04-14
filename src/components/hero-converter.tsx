@@ -22,7 +22,7 @@ type HumanizeResponse = {
 };
 
 // 表示用の文字数上限（サーバー側でプランごとに実際の制限を適用）
-const DISPLAY_MAX_CHARS = 3000;
+const DISPLAY_MAX_CHARS = 5000;
 
 /**
  * LPヒーローセクション：Sidekickerスタイルのダイレクト変換フロー

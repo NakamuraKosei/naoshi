@@ -2,7 +2,7 @@
 //
 // ■ 制限方式
 //   - 無料プラン: 回数制限（300字/回 × 3回/月）
-//   - 有料プラン: 月間文字数制限（1回あたり上限 + 月間合計文字数上限）
+//   - 有料プラン: 期間文字数制限（1回あたり上限 + 期間合計文字数上限）
 //
 // ■ リセット: 全プラン共通、毎月1日 JST 0:00
 
@@ -44,14 +44,14 @@ export const PLAN_RULES: Record<PlanKey, PlanRule> = {
     label: "ライト（週）",
   },
   heavy_monthly: {
-    maxChars: 3000,
+    maxChars: 5000,
     limitType: "chars",
     periodLimit: 150_000,
     resetCycle: "monthly",
     label: "ヘビー（月）",
   },
   heavy_yearly: {
-    maxChars: 3000,
+    maxChars: 10000,
     limitType: "chars",
     periodLimit: 150_000,
     resetCycle: "monthly",

@@ -32,8 +32,8 @@ export const runtime = "nodejs";
 // Claude モデルID（requirements記載の Sonnet 4）
 const MODEL_ID = "claude-sonnet-4-20250514";
 
-// 出力の最大トークン数（3000字の書き換えでも十分な余裕）
-const MAX_OUTPUT_TOKENS = 6000;
+// 出力の最大トークン数（10,000字の書き換えにも対応できる余裕）
+const MAX_OUTPUT_TOKENS = 16000;
 
 // 文体の型
 type Style = "dearu" | "desumasu";

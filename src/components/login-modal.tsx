@@ -19,6 +19,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [agreed, setAgreed] = useState(false);
 
   if (!isOpen) return null;
 
@@ -124,18 +125,24 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 disabled={isLoading}
                 aria-label="メールアドレス"
               />
-              <Button type="submit" variant="primary" className="w-full" disabled={isLoading}>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
+                />
+                <span className="text-xs leading-[1.6] text-text-muted">
+                  <Link href="/terms" className="underline hover:text-primary" target="_blank">利用規約</Link>
+                  と
+                  <Link href="/privacy" className="underline hover:text-primary" target="_blank">プライバシーポリシー</Link>
+                  に同意する
+                </span>
+              </label>
+              <Button type="submit" variant="primary" className="w-full" disabled={isLoading || !agreed}>
                 {isLoading ? "送信中…" : "マジックリンクを送る"}
               </Button>
             </form>
-
-            <p className="mt-6 text-center text-xs text-text-muted">
-              続行することで、
-              <Link href="/terms" className="underline hover:text-primary">利用規約</Link>
-              と
-              <Link href="/privacy" className="underline hover:text-primary">プライバシーポリシー</Link>
-              に同意したものとします。
-            </p>
           </div>
         )}
       </div>

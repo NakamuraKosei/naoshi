@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
 
   // ログイン済み -> /app
   useEffect(() => {
@@ -95,21 +96,25 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
               />
-              <Button type="submit" variant="primary" className="w-full" disabled={loading}>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
+                />
+                <span className="text-xs leading-[1.6] text-text-muted">
+                  <Link href="/terms" className="text-primary hover:underline" target="_blank">利用規約</Link>
+                  および
+                  <Link href="/privacy" className="text-primary hover:underline" target="_blank">プライバシーポリシー</Link>
+                  に同意する
+                </span>
+              </label>
+              <Button type="submit" variant="primary" className="w-full" disabled={loading || !agreed}>
                 {loading ? "送信中…" : "マジックリンクを送る"}
               </Button>
             </form>
           </div>
-        )}
-
-        {!submitted && (
-          <p className="mt-8 text-center text-xs leading-[1.6] text-text-muted">
-            続行することで、
-            <Link href="/terms" className="text-primary hover:underline">利用規約</Link>
-            および
-            <Link href="/privacy" className="text-primary hover:underline">プライバシーポリシー</Link>
-            に同意したものとみなされます。
-          </p>
         )}
 
         <div className="mt-6 text-center">

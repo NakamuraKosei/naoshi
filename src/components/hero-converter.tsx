@@ -177,10 +177,10 @@ export function HeroConverter() {
             <h1 className="text-[28px] font-bold leading-[1.3] tracking-tight text-text-primary sm:text-4xl sm:leading-[1.15] md:text-[56px]">
               AIで書いたレポートを、
               <br />
-              ちゃんと人間の言葉に。
+              自然な日本語に。
             </h1>
             <p className="mt-4 text-lg leading-[1.75] text-text-secondary">
-              貼り付けて「なおす」を押すだけ。<br className="sm:hidden" />AIのレポートを自然な文章になおします。
+              貼り付けて「なおす」を押すだけ。<br className="sm:hidden" />AIのレポートを自然なレポートへ。
             </p>
           </div>
 

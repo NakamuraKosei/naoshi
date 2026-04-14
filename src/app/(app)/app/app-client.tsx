@@ -147,10 +147,10 @@ export function AppClient({
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-text-primary md:text-3xl">
-              レポートを、ちゃんと人間の言葉に。
+              AIっぽさのない、自然なレポートへ。
             </h1>
             <p className="mt-1 text-sm text-text-secondary">
-              左に貼り付けて「なおす」を押すだけ。
+              貼り付けて「なおす」を押すだけ。
             </p>
             {/* プラン情報 + 残量表示 */}
             <p className={cn(

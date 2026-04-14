@@ -27,7 +27,7 @@ export function SiteFooter({ className }: { className?: string }) {
         <div className="space-y-3">
           <Logo size="md" />
           <p className="text-sm text-text-secondary">
-            AIで書いたレポートを、ちゃんと人間の言葉に。
+            AIで書いたレポートを、自然な日本語に。
           </p>
         </div>
 

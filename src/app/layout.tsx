@@ -22,11 +22,11 @@ const inter = Inter({
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://naoshi.app";
 const siteName = "Naoshi（ナオシ）";
 const siteDescription =
-  "日本の大学生のための、日本語特化ヒューマナイザー。AI特有の文体を自然な日本語に整えます。";
+  "AIが書いた日本語レポートを、自然な日本語に整えるツールです。";
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteName} — AIで書いたレポートを、ちゃんと人間の言葉に。`,
+    default: `${siteName} — AIで書いたレポートを、自然な日本語に。`,
     template: `%s | ${siteName}`,
   },
   description: siteDescription,
@@ -35,13 +35,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName,
-    title: "AIで書いたレポートを、ちゃんと人間の言葉に。",
+    title: "AIで書いたレポートを、自然な日本語に。",
     description: siteDescription,
     locale: "ja_JP",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Naoshi — AIで書いたレポートを、ちゃんと人間の言葉に。",
+    title: "Naoshi — AIで書いたレポートを、自然な日本語に。",
     description: siteDescription,
   },
 };

@@ -64,6 +64,7 @@ export async function POST(request: Request) {
     // Checkout セッション生成
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      allow_promotion_codes: true,
       line_items: [{ price: priceId, quantity: 1 }],
       // 既存顧客があれば customer を指定、無ければ email を渡して新規作成させる
       ...(profile?.stripe_customer_id

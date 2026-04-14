@@ -164,6 +164,7 @@ export function AppClient({
           <div className="flex flex-col items-end gap-2">
             <ModeSelector value={mode} onChange={setMode} />
             <StyleSelector value={style} onChange={setStyle} />
+            <ModeDescription mode={mode} />
           </div>
         </div>
 
@@ -448,6 +449,22 @@ function CompleteOverlay({ onClose }: { onClose: () => void }) {
         </button>
       </div>
     </div>
+  );
+}
+
+/** モード説明テキスト */
+function ModeDescription({ mode }: { mode: Mode }) {
+  if (mode === "standard") {
+    return (
+      <p className="max-w-[300px] text-right text-xs leading-relaxed text-text-muted">
+        レポートの質を重視して自然な文章に整えます。学術的な文体を維持しつつ、AI特有の表現を取り除きます。
+      </p>
+    );
+  }
+  return (
+    <p className="max-w-[300px] text-right text-xs leading-relaxed text-text-muted">
+      CopyMonitorなどのAI検出ツールに引っかかりにくい文章に変換します。検出スコアを下げることを優先します。
+    </p>
   );
 }
 

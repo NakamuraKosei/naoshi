@@ -14,8 +14,7 @@ type Row = {
 };
 
 const rows: Row[] = [
-  { label: "販売事業者名", value: "株式会社ARICA" },
-  { label: "運営責任者", value: "中村耕盛" },
+  { label: "販売事業者名", value: "中村耕盛" },
   {
     label: "所在地",
     value: "請求があった場合は遅滞なく開示いたします。",

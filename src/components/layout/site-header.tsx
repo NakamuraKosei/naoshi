@@ -16,7 +16,7 @@ export function SiteHeader({ className }: { className?: string }) {
         className,
       )}
     >
-      <div className="mx-auto flex h-full w-full max-w-6xl items-center justify-between gap-4 overflow-hidden px-6">
+      <div className="mx-auto flex h-full w-full max-w-6xl items-center justify-between gap-4 px-6">
         <Logo size="md" />
         <HeaderNav />
       </div>

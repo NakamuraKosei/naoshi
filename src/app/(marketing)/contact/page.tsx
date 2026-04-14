@@ -4,9 +4,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Card } from "@/components/ui/card";
 
-// お問い合わせ窓口のメールアドレス（MVPでは仮のアドレス）
-// 正式ドメイン確定後に差し替える
-const SUPPORT_EMAIL = "support@naoshi.example.com";
+// お問い合わせ窓口のメールアドレス
+const SUPPORT_EMAIL = "naoshisupport@gmail.com";
 
 export const metadata: Metadata = {
   title: "お問い合わせ",
@@ -68,7 +67,7 @@ export default function ContactPage() {
 
           {/* 注記 */}
           <p className="mt-16 text-center text-xs text-text-muted">
-            ※ メールアドレスはMVP向けの仮表記です。正式版公開前に差し替えます。
+            ※ 通常2営業日以内にご返信いたします。
           </p>
         </section>
       </main>

@@ -14,8 +14,8 @@ type Row = {
 };
 
 const rows: Row[] = [
-  { label: "販売事業者名", value: "（公開前に記入）" },
-  { label: "運営責任者", value: "（公開前に記入）" },
+  { label: "販売事業者名", value: "株式会社ARICA" },
+  { label: "運営責任者", value: "中村耕盛" },
   {
     label: "所在地",
     value: "請求があった場合は遅滞なく開示いたします。",
@@ -24,10 +24,10 @@ const rows: Row[] = [
     label: "電話番号",
     value: "請求があった場合は遅滞なく開示いたします。",
   },
-  { label: "メールアドレス", value: "（公開前に記入）" },
+  { label: "メールアドレス", value: "naoshisupport@gmail.com" },
   {
     label: "販売URL",
-    value: "（ドメイン確定後に記入）",
+    value: "https://naoshi.vercel.app",
   },
   {
     label: "販売価格",
@@ -97,7 +97,7 @@ export default function LegalPage() {
       </div>
 
       <p className="mt-12 text-sm text-text-muted">
-        ※ 販売事業者名・運営責任者・メールアドレス・販売URLは正式公開前に記入します。
+        ※ 記載内容は変更される場合があります。最新の情報は本ページをご確認ください。
       </p>
     </LegalPageShell>
   );

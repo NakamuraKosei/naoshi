@@ -61,6 +61,12 @@ export function HeaderNav() {
           なおす
         </Link>
         <Link
+          href="/pricing"
+          className="text-sm font-medium text-text-secondary transition-colors hover:text-primary"
+        >
+          料金
+        </Link>
+        <Link
           href="/account"
           className="text-sm font-medium text-text-secondary transition-colors hover:text-primary"
         >

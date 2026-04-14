@@ -438,7 +438,7 @@ function CompleteOverlay({ onClose }: { onClose: () => void }) {
         </div>
         <p className="text-lg font-bold text-text-primary">変換が完了しました</p>
         <p className="max-w-[280px] text-center text-sm leading-relaxed text-text-secondary">
-          内容に誤りがないか、必ず確認してからご利用ください。
+          内容に誤りがないか、必ず確認してから<br />ご利用ください。
         </p>
         <button
           onClick={onClose}

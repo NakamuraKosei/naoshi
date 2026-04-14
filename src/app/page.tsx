@@ -127,7 +127,7 @@ export default function Home() {
         <section className="bg-surface-dark">
           <div className="mx-auto w-full max-w-3xl px-6 py-20 text-center">
             <h2 className="text-3xl font-semibold leading-tight text-text-on-dark md:text-4xl">
-              AIっぽさのない、自然なレポートへ。
+              AIっぽさのない、<br className="md:hidden" />自然なレポートへ。
             </h2>
             <p className="mt-4 text-base leading-[1.75] text-text-on-dark/80">
               もうAIチェッカーは怖くない。無料プランなら、メール登録だけですぐに試せます。

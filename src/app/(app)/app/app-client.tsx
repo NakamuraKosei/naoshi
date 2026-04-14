@@ -21,10 +21,14 @@ type HumanizeResponse = {
 };
 
 // Server Component から渡されるプラン情報
+// リセット周期
+type ResetCycle = "monthly" | "weekly";
+
 export type AppClientProps = {
   maxChars: number;
   limitType: LimitType;
-  monthlyLimit: number;
+  periodLimit: number;
+  resetCycle: ResetCycle;
   used: number;
   remaining: number;
   planLabel: string;
@@ -35,7 +39,8 @@ export type AppClientProps = {
 export function AppClient({
   maxChars,
   limitType,
-  monthlyLimit,
+  periodLimit,
+  resetCycle,
   used,
   remaining,
   planLabel,
@@ -71,10 +76,11 @@ export function AppClient({
   // 残量の表示テキスト
   const remainingLabel = useMemo(() => {
     if (limitType === "count") {
-      return `残り ${remaining} / ${monthlyLimit} 回`;
+      return `残り ${remaining} / ${periodLimit} 回`;
     }
-    return `残り ${remaining.toLocaleString()} / ${monthlyLimit.toLocaleString()} 字（今月）`;
-  }, [limitType, remaining, monthlyLimit]);
+    const periodLabel = resetCycle === "weekly" ? "今週" : "今月";
+    return `残り ${remaining.toLocaleString()} / ${periodLimit.toLocaleString()} 字（${periodLabel}）`;
+  }, [limitType, remaining, periodLimit, resetCycle]);
 
   async function handleHumanize() {
     // 超過時はモーダルを出す

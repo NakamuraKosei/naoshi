@@ -3,11 +3,12 @@
 //
 // ■ 制限方式（requirements.md 第3.4章）
 //   - 無料: 回数制限（3回/月）
-//   - 有料: 月間文字数制限（入力文字数の合計）
-// ■ リセット: 毎月1日 JST 0:00
+//   - ライト: 週間文字数制限（17,500字/週）
+//   - ヘビー: 月間文字数制限（150,000字/月）
+// ■ リセット: 無料・ヘビー=毎月1日 JST 0:00、ライト=毎週月曜 JST 0:00
 
 import { createClient } from "@/lib/supabase/server";
-import { getPlanRule, getMonthStart, type PlanKey, type LimitType } from "@/lib/usage/plans";
+import { getPlanRule, getPeriodStart, type PlanKey, type LimitType, type ResetCycle } from "@/lib/usage/plans";
 
 // 制限チェック結果
 export type LimitCheckResult = {
@@ -19,8 +20,10 @@ export type LimitCheckResult = {
   maxChars: number;
   // 制限方式
   limitType: LimitType;
-  // 月間上限（回数 or 文字数）
-  monthlyLimit: number;
+  // 期間上限（回数 or 文字数）
+  periodLimit: number;
+  // リセット周期
+  resetCycle: ResetCycle;
   // 今月の使用量（回数 or 文字数、limitType に対応）
   used: number;
   // 残り（回数 or 文字数）
@@ -47,7 +50,8 @@ export async function checkLimit(
         plan: "free",
         maxChars: 300,
         limitType: "count",
-        monthlyLimit: 3,
+        periodLimit: 3,
+        resetCycle: "monthly" as ResetCycle,
         used: 0,
         remaining: 0,
         reason: "unauthenticated",
@@ -66,33 +70,33 @@ export async function checkLimit(
   const plan = (profile?.plan ?? "free") as PlanKey;
   const rule = getPlanRule(plan);
 
-  // 今月1日のリセット起点
-  const monthStart = getMonthStart();
+  // プランに応じたリセット起点（週次 or 月次）
+  const periodStart = getPeriodStart(rule.resetCycle);
 
   // 制限方式に応じて使用量を計算
   let used: number;
 
   if (rule.limitType === "count") {
-    // 回数ベース（無料プラン）: 今月の使用回数をカウント
+    // 回数ベース（無料プラン）: 期間内の使用回数をカウント
     const { count } = await supabase
       .from("usage")
       .select("id", { count: "exact", head: true })
       .eq("user_id", uid)
-      .gte("used_at", monthStart.toISOString());
+      .gte("used_at", periodStart.toISOString());
 
     used = count ?? 0;
   } else {
-    // 文字数ベース（有料プラン）: 今月の入力文字数合計
+    // 文字数ベース（有料プラン）: 期間内の入力文字数合計
     const { data } = await supabase
       .from("usage")
       .select("input_chars")
       .eq("user_id", uid)
-      .gte("used_at", monthStart.toISOString());
+      .gte("used_at", periodStart.toISOString());
 
     used = (data ?? []).reduce((sum, row) => sum + (row.input_chars ?? 0), 0);
   }
 
-  const remaining = Math.max(0, rule.monthlyLimit - used);
+  const remaining = Math.max(0, rule.periodLimit - used);
   const allowed = remaining > 0;
 
   return {
@@ -100,7 +104,8 @@ export async function checkLimit(
     plan,
     maxChars: rule.maxChars,
     limitType: rule.limitType,
-    monthlyLimit: rule.monthlyLimit,
+    periodLimit: rule.periodLimit,
+    resetCycle: rule.resetCycle,
     used,
     remaining,
     reason: allowed ? undefined : "quota_exceeded",

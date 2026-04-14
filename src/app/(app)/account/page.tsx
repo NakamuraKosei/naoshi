@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/layout/site-header";
 import { createClient } from "@/lib/supabase/server";
-import { getPlanRule, getMonthStart, type PlanKey } from "@/lib/usage/plans";
+import { getPlanRule, getPeriodStart, type PlanKey } from "@/lib/usage/plans";
 import { PortalButton } from "./portal-button";
 
 export const dynamic = "force-dynamic";
@@ -33,22 +33,22 @@ export default async function AccountPage() {
   const plan = (profile?.plan ?? "free") as PlanKey;
   const rule = getPlanRule(plan);
 
-  // 今月1日のリセット起点（全プラン共通）
-  const monthStart = getMonthStart();
+  // プランに応じたリセット起点（週次 or 月次）
+  const periodStart = getPeriodStart(rule.resetCycle);
 
-  // 今月の使用回数
+  // 期間内の使用回数
   const { count: monthCount } = await supabase
     .from("usage")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
-    .gte("used_at", monthStart.toISOString());
+    .gte("used_at", periodStart.toISOString());
 
-  // 今月の使用文字数合計
+  // 期間内の使用文字数合計
   const { data: usageRows } = await supabase
     .from("usage")
     .select("input_chars")
     .eq("user_id", user.id)
-    .gte("used_at", monthStart.toISOString());
+    .gte("used_at", periodStart.toISOString());
 
   const monthChars = (usageRows ?? []).reduce(
     (sum, row) => sum + ((row as { input_chars: number }).input_chars ?? 0),
@@ -65,7 +65,7 @@ export default async function AccountPage() {
 
   // 残量計算（制限方式に応じて）
   const used = rule.limitType === "count" ? (monthCount ?? 0) : monthChars;
-  const remaining = Math.max(0, rule.monthlyLimit - used);
+  const remaining = Math.max(0, rule.periodLimit - used);
 
   return (
     <div className="min-h-screen bg-surface">
@@ -123,11 +123,13 @@ export default async function AccountPage() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-text-secondary">月間上限</p>
+                <p className="text-sm text-text-secondary">
+                  {rule.resetCycle === "weekly" ? "週間上限" : "月間上限"}
+                </p>
                 <p className="mt-1 text-2xl font-semibold text-text-primary">
                   {rule.limitType === "count"
-                    ? `${rule.monthlyLimit}回/月`
-                    : `${rule.monthlyLimit.toLocaleString()}字/月`}
+                    ? `${rule.periodLimit}回/月`
+                    : `${rule.periodLimit.toLocaleString()}字/${rule.resetCycle === "weekly" ? "週" : "月"}`}
                 </p>
               </div>
             </div>
@@ -140,19 +142,21 @@ export default async function AccountPage() {
         {/* 下部: 使用状況カード */}
         <Card>
           <CardHeader>
-            <CardTitle>今月の使用状況</CardTitle>
+            <CardTitle>{rule.resetCycle === "weekly" ? "今週" : "今月"}の使用状況</CardTitle>
             <CardDescription>
-              毎月1日（JST）にリセットされます
+              {rule.resetCycle === "weekly"
+                ? "毎週月曜日（JST）にリセットされます"
+                : "毎月1日（JST）にリセットされます"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 sm:grid-cols-3">
               <div>
-                <p className="text-sm text-text-secondary">今月の使用</p>
+                <p className="text-sm text-text-secondary">{rule.resetCycle === "weekly" ? "今週" : "今月"}の使用</p>
                 <p className="mt-1 text-2xl font-semibold text-text-primary">
                   {rule.limitType === "count"
-                    ? `${used} / ${rule.monthlyLimit} 回`
-                    : `${used.toLocaleString()} / ${rule.monthlyLimit.toLocaleString()} 字`}
+                    ? `${used} / ${rule.periodLimit} 回`
+                    : `${used.toLocaleString()} / ${rule.periodLimit.toLocaleString()} 字`}
                 </p>
               </div>
               <div>

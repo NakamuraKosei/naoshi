@@ -26,9 +26,10 @@ export default async function AppPage({
       <AppClient
         maxChars={fallbackRule.maxChars}
         limitType={fallbackRule.limitType}
-        monthlyLimit={fallbackRule.monthlyLimit}
+        periodLimit={fallbackRule.periodLimit}
+        resetCycle={fallbackRule.resetCycle}
         used={0}
-        remaining={fallbackRule.monthlyLimit}
+        remaining={fallbackRule.periodLimit}
         planLabel={fallbackRule.label}
         checkoutSuccess={false}
       />
@@ -42,7 +43,8 @@ export default async function AppPage({
     <AppClient
       maxChars={limit.maxChars}
       limitType={limit.limitType}
-      monthlyLimit={limit.monthlyLimit}
+      periodLimit={limit.periodLimit}
+      resetCycle={limit.resetCycle}
       used={limit.used}
       remaining={limit.remaining}
       planLabel={rule.label}

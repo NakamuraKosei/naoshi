@@ -75,6 +75,9 @@ export default function LoginPage() {
             <p className="mt-3 text-sm leading-[1.75] text-text-secondary">
               <span className="font-medium text-text-primary">{email}</span> にログイン用のリンクを送りました。
             </p>
+            <p className="mt-2 text-xs text-text-muted">
+              リンクの有効期限は1時間です。届かない場合は迷惑メールフォルダをご確認ください。
+            </p>
           </div>
         ) : (
           <div className="mt-8">

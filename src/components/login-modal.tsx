@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 
 type LoginModalProps = {
   isOpen: boolean;
@@ -20,6 +21,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [isSent, setIsSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [agreed, setAgreed] = useState(false);
+  // フォーカストラップ（Tabキー循環 + Escapeで閉じる）
+  const trapRef = useFocusTrap(isOpen, handleClose);
 
   if (!isOpen) return null;
 
@@ -63,6 +66,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       onClick={handleClose}
     >
       <div
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="ログイン"
         className="relative w-full max-w-[460px] rounded-xl bg-surface p-10 shadow-lg mx-4"
         onClick={(e) => e.stopPropagation()}
       >

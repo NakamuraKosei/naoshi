@@ -30,6 +30,8 @@ export type LimitCheckResult = {
   remaining: number;
   // 不許可の場合の理由
   reason?: "unauthenticated" | "quota_exceeded";
+  // 認証済みユーザーのID（レートリミット等で使用）
+  userId?: string;
 };
 
 // userId を省略すると現在セッションから取得する
@@ -113,5 +115,6 @@ export async function checkLimit(
     used,
     remaining,
     reason: allowed ? undefined : "quota_exceeded",
+    userId: uid,
   };
 }

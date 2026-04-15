@@ -56,14 +56,22 @@ export async function POST(request: Request) {
     });
 
     if (error) {
-      // Supabase のエラーメッセージをユーザー向けに変換
-      const friendlyMessage = getFriendlyAuthError(error.message);
-      return NextResponse.json(
-        { error: friendlyMessage },
-        { status: error.status ?? 500 },
-      );
+      // メール列挙攻撃対策:
+      // レートリミット系のエラーのみユーザーに通知。
+      // その他のエラー（存在しないメール等）は成功と同じレスポンスを返し、
+      // 攻撃者がメールアドレスの存在有無を判別できないようにする。
+      const lower = error.message.toLowerCase();
+      if (lower.includes("rate limit") || lower.includes("too many")) {
+        return NextResponse.json(
+          { error: "メールの送信回数が上限に達しました。しばらく時間をおいてから再度お試しください。" },
+          { status: 429 },
+        );
+      }
+      // エラーはサーバーログにのみ記録し、ユーザーには成功と同じ応答
+      console.error("[magic-link] auth error:", error.message);
     }
 
+    // 成功でもエラーでも同じレスポンス（メール列挙防止）
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json(

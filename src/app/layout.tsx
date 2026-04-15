@@ -46,6 +46,47 @@ export const metadata: Metadata = {
   },
 };
 
+// 構造化データ（JSON-LD）— Google Rich Snippets 対応
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: siteName,
+  url: siteUrl,
+  description: siteDescription,
+  applicationCategory: "EducationalApplication",
+  operatingSystem: "Web",
+  inLanguage: "ja",
+  offers: [
+    {
+      "@type": "Offer",
+      name: "無料プラン",
+      price: "0",
+      priceCurrency: "JPY",
+    },
+    {
+      "@type": "Offer",
+      name: "ライトプラン（週）",
+      price: "500",
+      priceCurrency: "JPY",
+      billingIncrement: "P1W",
+    },
+    {
+      "@type": "Offer",
+      name: "ヘビープラン（月）",
+      price: "2980",
+      priceCurrency: "JPY",
+      billingIncrement: "P1M",
+    },
+    {
+      "@type": "Offer",
+      name: "ヘビープラン（年）",
+      price: "24000",
+      priceCurrency: "JPY",
+      billingIncrement: "P1Y",
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -56,6 +97,12 @@ export default function RootLayout({
       lang="ja"
       className={`${notoSansJp.variable} ${inter.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-surface text-text-primary">
         {children}
       </body>

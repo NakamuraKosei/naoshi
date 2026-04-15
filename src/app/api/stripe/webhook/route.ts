@@ -14,9 +14,10 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  if (!signature || !webhookSecret) {
+  // 空文字列や未定義の場合もブロック（署名検証が無意味になるのを防止）
+  if (!signature || !webhookSecret || webhookSecret.length === 0) {
     return NextResponse.json(
       { error: "Webhook 署名が不正、もしくはシークレット未設定。" },
       { status: 400 },

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 
 type LimitModalProps = {
   isOpen: boolean;
@@ -15,6 +16,9 @@ type LimitModalProps = {
  * プランアップグレードへ誘導する
  */
 export function LimitModal({ isOpen, onClose, limitType }: LimitModalProps) {
+  // フォーカストラップ（Tabキー循環 + Escapeで閉じる）
+  const trapRef = useFocusTrap(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const message =
@@ -28,6 +32,10 @@ export function LimitModal({ isOpen, onClose, limitType }: LimitModalProps) {
       onClick={onClose}
     >
       <div
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="利用上限"
         className="w-full max-w-[500px] rounded-xl bg-surface p-10 shadow-lg mx-4"
         onClick={(e) => e.stopPropagation()}
       >

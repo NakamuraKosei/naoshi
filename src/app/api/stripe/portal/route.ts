@@ -4,10 +4,22 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe/client";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  // レートリミット（IP単位、1分あたり5リクエスト）
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
+  const rl = rateLimit(`portal:${ip}`, 5, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "リクエストが多すぎます。しばらくお待ちください。" },
+      { status: 429 },
+    );
+  }
+
   try {
     const supabase = await createClient();
     const {
@@ -36,7 +48,10 @@ export async function POST(request: Request) {
     }
 
     const stripe = getStripe();
-    const origin = new URL(request.url).origin;
+    // NEXT_PUBLIC_SITE_URL が設定されていればそちらを優先（checkout と統一）
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      new URL(request.url).origin;
 
     // Customer Portal セッション生成
     const portal = await stripe.billingPortal.sessions.create({

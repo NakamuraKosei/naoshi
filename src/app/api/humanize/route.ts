@@ -167,6 +167,17 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   }
+  // --- 3.2 ユーザーIDベースのレートリミット（IP偽装対策） ---
+  if (limit.userId) {
+    const userRl = rateLimit(`humanize:user:${limit.userId}`, 10, 60_000);
+    if (!userRl.allowed) {
+      return Response.json(
+        { error: "リクエストが多すぎます。しばらくお待ちください。" },
+        { status: 429 },
+      );
+    }
+  }
+
   if (text.length > limit.maxChars) {
     return Response.json(
       {

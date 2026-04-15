@@ -4,10 +4,22 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe, getPriceId, type PlanId } from "@/lib/stripe/client";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  // レートリミット（IP単位、1分あたり5リクエスト）
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
+  const rl = rateLimit(`checkout:${ip}`, 5, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "リクエストが多すぎます。しばらくお待ちください。" },
+      { status: 429 },
+    );
+  }
+
   try {
     const supabase = await createClient();
     const {
@@ -41,25 +53,23 @@ export async function POST(request: Request) {
     // 既存の Stripe Customer があればそれを使う
     const { data: profile } = await supabase
       .from("profiles")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, plan")
       .eq("id", user.id)
       .maybeSingle();
+
+    // 既に有料プランの場合はCheckoutを拒否（Customer Portal経由でプラン変更すべき）
+    // Checkout時に既存サブスクを自動キャンセルする危険な動作を防止
+    if (profile?.plan && profile.plan !== "free") {
+      return NextResponse.json(
+        { error: "既にプランに加入中です。マイページからプラン変更を行ってください。" },
+        { status: 400 },
+      );
+    }
 
     const stripe = getStripe();
     const origin =
       process.env.NEXT_PUBLIC_SITE_URL ??
       new URL(request.url).origin;
-
-    // 既存サブスクリプションがあればキャンセル（二重課金防止）
-    if (profile?.stripe_customer_id) {
-      const existingSubs = await stripe.subscriptions.list({
-        customer: profile.stripe_customer_id,
-        status: "active",
-      });
-      for (const sub of existingSubs.data) {
-        await stripe.subscriptions.cancel(sub.id);
-      }
-    }
 
     // Checkout セッション生成
     const session = await stripe.checkout.sessions.create({

@@ -68,15 +68,15 @@ export default async function AccountPage() {
         </div>
 
         {/* 変換画面へのCTA */}
-        <Link href="/app" className="mb-6 block">
-          <Card interactive className="flex flex-col gap-3 border-2 border-primary sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-lg font-semibold text-text-primary">レポートを整える</p>
-              <p className="mt-1 text-sm text-text-secondary">変換画面に移動して、さっそく使ってみましょう。</p>
-            </div>
-            <Button variant="primary" className="w-full shrink-0 sm:w-auto">なおす →</Button>
-          </Card>
-        </Link>
+        <Card className="mb-6 flex flex-col gap-3 border-2 border-primary sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-lg font-semibold text-text-primary">レポートを整える</p>
+            <p className="mt-1 text-sm text-text-secondary">変換画面に移動して、さっそく使ってみましょう。</p>
+          </div>
+          <Link href="/app" className="w-full shrink-0 sm:w-auto">
+            <Button variant="primary" className="w-full">なおす →</Button>
+          </Link>
+        </Card>
 
         {/* 上部: プラン状態カード */}
         <Card className="mb-6">

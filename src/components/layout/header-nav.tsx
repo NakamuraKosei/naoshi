@@ -80,12 +80,12 @@ export function HeaderNav() {
     router.refresh();
   }
 
-  // 読み込み中はちらつき防止
-  if (isLoggedIn === null) {
+  // 読み込み中はちらつき防止（認証・プラン両方の取得完了を待つ）
+  if (isLoggedIn === null || (isLoggedIn && plan === null)) {
     return <nav className="flex items-center gap-6 min-w-[140px]" />;
   }
 
-  const isFreePlan = !plan || plan === "free";
+  const isFreePlan = plan === "free";
 
   // --- ログイン済み ---
   if (isLoggedIn) {

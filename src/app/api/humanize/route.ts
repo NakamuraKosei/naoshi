@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { loadHumanizeSystemPrompt, type HumanizeMode } from "@/lib/humanize/load-prompt";
+import { loadHumanizeSystemPrompt, detectTextLength, type HumanizeMode } from "@/lib/humanize/load-prompt";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
 import { rateLimit } from "@/lib/rate-limit";
@@ -193,9 +193,10 @@ export async function POST(request: Request) {
   let systemPrompt: string;
   if (!IS_MOCK) {
     try {
-      // モード判定（省略時は "standard"）
+      // モード判定（省略時は "standard"）、文字数で短文/長文を自動切り替え
       const mode: HumanizeMode = body.mode ?? "standard";
-      const basePrompt = await loadHumanizeSystemPrompt(mode);
+      const textLength = detectTextLength(text.length);
+      const basePrompt = await loadHumanizeSystemPrompt(mode, textLength);
       // 文体指定を末尾に1行追加
       systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}\n\n---\n\n## 出力フォーマット\n\n以下のJSON形式で出力してください。JSONのみを出力し、他のテキストは含めないでください。\n\n\`\`\`json\n{\n  "converted_text": "変換後の本文をここに記述",\n  "modification_points": [\n    "修正ポイント1",\n    "修正ポイント2",\n    "修正ポイント3"\n  ]\n}\n\`\`\`\n\n- converted_text: 変換後の本文（従来通りのルールで書き換えた全文）\n- modification_points: 今回の書き換えで行った修正の要約を3〜5個、箇条書きで記述。具体的にどの表現をどう変えたかがわかるように書くこと。`;
     } catch (err) {

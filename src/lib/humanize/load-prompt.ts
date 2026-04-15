@@ -19,37 +19,52 @@ import path from "node:path";
 // モード型定義
 export type HumanizeMode = "standard" | "evasion";
 
-// モードごとのファイル名マッピング
-const PROMPT_FILES: Record<HumanizeMode, string> = {
-  standard: "humanize-system-prompt-standard.md",
-  evasion: "humanize-system-prompt-evasion.md",
+// 文字数の長さ区分
+export type TextLength = "short" | "long";
+
+// 短文判定の閾値（500字以下を短文とする）
+export const SHORT_TEXT_THRESHOLD = 500;
+
+// モード × 長さごとのファイル名マッピング
+const PROMPT_FILES: Record<`${TextLength}-${HumanizeMode}`, string> = {
+  "short-standard": "humanize-system-prompt-short-standard.md",
+  "short-evasion": "humanize-system-prompt-short-evasion.md",
+  "long-standard": "humanize-system-prompt-standard.md",
+  "long-evasion": "humanize-system-prompt-evasion.md",
 };
 
-// モードごとのキャッシュ
-const cachedPrompts: Record<HumanizeMode, string | null> = {
-  standard: null,
-  evasion: null,
-};
+// キャッシュ
+const cachedPrompts: Record<string, string | null> = {};
 
 /**
- * 指定モードのシステムプロンプト本文を取得する。
+ * 入力文字数から長さ区分を判定する。
+ */
+export function detectTextLength(charCount: number): TextLength {
+  return charCount <= SHORT_TEXT_THRESHOLD ? "short" : "long";
+}
+
+/**
+ * 指定モード・長さ区分のシステムプロンプト本文を取得する。
  * 初回呼び出し時のみファイルを読み、以降はキャッシュを返す。
  */
 export async function loadHumanizeSystemPrompt(
   mode: HumanizeMode = "standard",
+  textLength: TextLength = "long",
 ): Promise<string> {
-  if (cachedPrompts[mode] !== null) {
-    return cachedPrompts[mode]!;
+  const key = `${textLength}-${mode}`;
+
+  if (cachedPrompts[key]) {
+    return cachedPrompts[key]!;
   }
 
   // process.cwd() はNext.jsのプロジェクトルート（=naoshi/）を指す
   const promptPath = path.join(
     process.cwd(),
     "prompts",
-    PROMPT_FILES[mode],
+    PROMPT_FILES[key as keyof typeof PROMPT_FILES],
   );
 
   const content = await readFile(promptPath, "utf8");
-  cachedPrompts[mode] = content;
+  cachedPrompts[key] = content;
   return content;
 }

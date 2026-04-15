@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/layout/site-header";
 import { createClient } from "@/lib/supabase/server";
-import { getPlanRule, getPeriodStart, type PlanKey } from "@/lib/usage/plans";
+import { getPlanRule, type PlanKey } from "@/lib/usage/plans";
+import { checkLimit } from "@/lib/usage/check-limit";
 import { PortalButton } from "./portal-button";
 
 export const dynamic = "force-dynamic";
@@ -33,27 +34,10 @@ export default async function AccountPage() {
   const plan = (profile?.plan ?? "free") as PlanKey;
   const rule = getPlanRule(plan);
 
-  // プランに応じたリセット起点（週次 or 月次）
-  const periodStart = getPeriodStart(rule.resetCycle);
-
-  // 期間内の使用回数
-  const { count: monthCount } = await supabase
-    .from("usage")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .gte("used_at", periodStart.toISOString());
-
-  // 期間内の使用文字数合計
-  const { data: usageRows } = await supabase
-    .from("usage")
-    .select("input_chars")
-    .eq("user_id", user.id)
-    .gte("used_at", periodStart.toISOString());
-
-  const monthChars = (usageRows ?? []).reduce(
-    (sum, row) => sum + ((row as { input_chars: number }).input_chars ?? 0),
-    0,
-  );
+  // checkLimit() で使用量を一元的に計算（plan_changed_at を考慮）
+  const limit = await checkLimit(user.id);
+  const used = limit.used;
+  const remaining = limit.remaining;
 
   // 累計の使用回数
   const { count: totalCount } = await supabase
@@ -62,10 +46,6 @@ export default async function AccountPage() {
     .eq("user_id", user.id);
 
   const total = totalCount ?? 0;
-
-  // 残量計算（制限方式に応じて）
-  const used = rule.limitType === "count" ? (monthCount ?? 0) : monthChars;
-  const remaining = Math.max(0, rule.periodLimit - used);
 
   return (
     <div className="min-h-screen bg-surface">

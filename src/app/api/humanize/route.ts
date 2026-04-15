@@ -263,6 +263,7 @@ export async function POST(request: Request) {
         inputChars: text.length,
         outputChars: output.length,
         style: body.style,
+        mode: body.mode ?? "standard",
         durationMs,
       });
     } catch (err) {

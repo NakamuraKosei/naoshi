@@ -21,6 +21,7 @@ type UsageRow = {
   input_chars: number;
   output_chars: number;
   style: "dearu" | "desumasu";
+  mode: "standard" | "evasion" | null;
   duration_ms: number;
 };
 
@@ -59,7 +60,7 @@ export default async function HistoryPage() {
   // 最新10件を取得
   const { data: rows } = await supabase
     .from("usage")
-    .select("id, used_at, input_chars, output_chars, style, duration_ms")
+    .select("id, used_at, input_chars, output_chars, style, mode, duration_ms")
     .eq("user_id", user.id)
     .order("used_at", { ascending: false })
     .limit(10);
@@ -118,6 +119,7 @@ function HistoryShell({ rows, plan }: { rows: UsageRow[]; plan: string }) {
 // 1行分のカード表示
 function HistoryRow({ row }: { row: UsageRow }) {
   const styleLabel = row.style === "dearu" ? "だ・である調" : "ですます調";
+  const modeLabel = row.mode === "evasion" ? "AI対策強化" : "標準";
   const usedAt = new Date(row.used_at);
   // JST で整形（YYYY/MM/DD HH:mm）
   const formatted = new Intl.DateTimeFormat("ja-JP", {
@@ -132,9 +134,12 @@ function HistoryRow({ row }: { row: UsageRow }) {
   return (
     <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-5 py-4 shadow-sm">
       <div className="space-y-1">
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="font-semibold text-text-primary">{formatted}</span>
           <span className="rounded-full bg-primary-light px-2 py-0.5 text-xs font-medium text-primary">
+            {modeLabel}
+          </span>
+          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-text-secondary">
             {styleLabel}
           </span>
         </div>

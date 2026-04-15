@@ -22,6 +22,8 @@ export type RecordUsageInput = {
   outputChars: number;
   // 文体
   style: "dearu" | "desumasu";
+  // 変換モード（標準 / AI対策強化）
+  mode?: "standard" | "evasion";
   // 変換にかかった時間（ミリ秒）
   durationMs: number;
 };
@@ -46,6 +48,7 @@ export async function recordUsage(input: RecordUsageInput): Promise<void> {
     input_chars: input.inputChars,
     output_chars: input.outputChars,
     style: input.style,
+    mode: input.mode ?? "standard",
     duration_ms: input.durationMs,
   });
 }

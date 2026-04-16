@@ -412,7 +412,7 @@ function LimitExceededModal({
 function StyleSelector({ value, onChange }: { value: Style; onChange: (v: Style) => void }) {
   const options: { key: Style; label: string }[] = [
     { key: "dearu", label: "だ・である調" },
-    { key: "desumasu", label: "ですます調" },
+    { key: "desumasu", label: "です・ます調" },
   ];
   return (
     <div role="radiogroup" aria-label="文体の選択" className="inline-flex items-center rounded-full border border-border bg-surface p-1">

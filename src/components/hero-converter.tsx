@@ -342,7 +342,7 @@ function StyleSelector({
 }) {
   const options: { key: Style; label: string }[] = [
     { key: "dearu", label: "だ・である調" },
-    { key: "desumasu", label: "ですます調" },
+    { key: "desumasu", label: "です・ます調" },
   ];
   return (
     <div

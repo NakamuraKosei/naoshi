@@ -118,7 +118,7 @@ function HistoryShell({ rows, plan }: { rows: UsageRow[]; plan: string }) {
 
 // 1行分のカード表示
 function HistoryRow({ row }: { row: UsageRow }) {
-  const styleLabel = row.style === "dearu" ? "だ・である調" : "ですます調";
+  const styleLabel = row.style === "dearu" ? "だ・である調" : "です・ます調";
   // モード表示（現在は回避モード一本化のため固定）
   const usedAt = new Date(row.used_at);
   // JST で整形（YYYY/MM/DD HH:mm）

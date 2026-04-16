@@ -43,7 +43,7 @@ type Style = "dearu" | "desumasu";
  * システムプロンプトの末尾に「文体指定: 〜」を付与するために使う。
  */
 function styleLabel(style: Style): string {
-  return style === "dearu" ? "だ・である調" : "ですます調";
+  return style === "dearu" ? "だ・である調" : "です・ます調";
 }
 
 /**

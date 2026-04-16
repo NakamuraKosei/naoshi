@@ -72,7 +72,7 @@ export default function PricingPage() {
             <ul className="mt-8 space-y-4 text-base leading-[1.75] text-text-secondary">
               <li>・日本語学術文に特化した変換エンジン</li>
               <li>・参考文献・固有名詞・数値の完全保護</li>
-              <li>・だ・である調 / ですます調 の切替</li>
+              <li>・だ・である調 / です・ます調 の切替</li>
               <li>・変換履歴の閲覧（直近10件、本人のみ）</li>
               <li>・プライバシーに配慮したデータ取り扱い</li>
             </ul>

@@ -119,7 +119,7 @@ function HistoryShell({ rows, plan }: { rows: UsageRow[]; plan: string }) {
 // 1行分のカード表示
 function HistoryRow({ row }: { row: UsageRow }) {
   const styleLabel = row.style === "dearu" ? "だ・である調" : "ですます調";
-  const modeLabel = row.mode === "evasion" ? "AI対策強化" : "標準";
+  // モード表示（現在は回避モード一本化のため固定）
   const usedAt = new Date(row.used_at);
   // JST で整形（YYYY/MM/DD HH:mm）
   const formatted = new Intl.DateTimeFormat("ja-JP", {
@@ -136,9 +136,6 @@ function HistoryRow({ row }: { row: UsageRow }) {
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="font-semibold text-text-primary">{formatted}</span>
-          <span className="rounded-full bg-primary-light px-2 py-0.5 text-xs font-medium text-primary">
-            {modeLabel}
-          </span>
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-text-secondary">
             {styleLabel}
           </span>

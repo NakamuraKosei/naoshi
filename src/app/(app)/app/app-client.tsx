@@ -30,6 +30,8 @@ export type AppClientProps = {
   used: number;
   remaining: number;
   planLabel: string;
+  // ダブルチェック利用可否（ヘビープラン限定）
+  canDoubleCheck: boolean;
   // Stripe Checkout 完了後のサクセスバナー表示用
   checkoutSuccess?: boolean;
 };
@@ -42,11 +44,13 @@ export function AppClient({
   used: initialUsed,
   remaining: initialRemaining,
   planLabel,
+  canDoubleCheck,
   checkoutSuccess = false,
 }: AppClientProps) {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [style, setStyle] = useState<Style>("dearu");
+  const [doubleCheck, setDoubleCheck] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [copied, setCopied] = useState(false);
@@ -99,7 +103,11 @@ export function AppClient({
       const res = await fetch("/api/humanize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: input, style }),
+        body: JSON.stringify({
+          text: input,
+          style,
+          mode: doubleCheck ? "double_check" : "standard",
+        }),
       });
 
       if (res.status === 403) {
@@ -122,14 +130,14 @@ export function AppClient({
 
       // 使用量をクライアント側で即時更新
       if (limitType === "count") {
-        // 回数ベース: 1回使用
         setCurrentUsed((prev) => prev + 1);
         setCurrentRemaining((prev) => Math.max(0, prev - 1));
       } else {
-        // 文字数ベース: 入力文字数分を加算
+        // ダブルチェック時は2倍消費
         const inputChars = input.trim().length;
-        setCurrentUsed((prev) => prev + inputChars);
-        setCurrentRemaining((prev) => Math.max(0, prev - inputChars));
+        const charCost = doubleCheck ? inputChars * 2 : inputChars;
+        setCurrentUsed((prev) => prev + charCost);
+        setCurrentRemaining((prev) => Math.max(0, prev - charCost));
       }
 
       // 完了オーバーレイを表示（ボタン or 背景タップで閉じる）
@@ -175,8 +183,15 @@ export function AppClient({
               1回あたり最大 {maxChars.toLocaleString()} 字
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 md:flex-col md:items-end">
+          <div className="flex flex-wrap items-center gap-3 md:flex-col md:items-end">
             <StyleSelector value={style} onChange={setStyle} />
+            {canDoubleCheck && (
+              <DoubleCheckToggle
+                checked={doubleCheck}
+                onChange={setDoubleCheck}
+                disabled={isLoading}
+              />
+            )}
           </div>
         </div>
 
@@ -435,6 +450,52 @@ function StyleSelector({ value, onChange }: { value: Style; onChange: (v: Style)
         );
       })}
     </div>
+  );
+}
+
+/** ダブルチェックトグル（ヘビープラン限定） */
+function DoubleCheckToggle({
+  checked,
+  onChange,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled: boolean;
+}) {
+  return (
+    <label
+      className={cn(
+        "inline-flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+        checked
+          ? "border-primary bg-primary-light text-primary"
+          : "border-border bg-surface text-text-secondary hover:border-primary/40",
+        disabled && "pointer-events-none opacity-50",
+      )}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        disabled={disabled}
+        className="sr-only"
+      />
+      <span
+        className={cn(
+          "flex h-5 w-9 items-center rounded-full p-0.5 transition-colors",
+          checked ? "bg-primary" : "bg-gray-300",
+        )}
+      >
+        <span
+          className={cn(
+            "h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
+            checked && "translate-x-4",
+          )}
+        />
+      </span>
+      <span>ダブルチェック</span>
+      <span className="text-xs text-text-muted">×2</span>
+    </label>
   );
 }
 

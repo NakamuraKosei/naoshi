@@ -16,17 +16,31 @@ This version has breaking changes — APIs, conventions, and file structure may 
 |---|---|
 | `requirements.md` | 要件定義書。機能要件・料金プラン・データモデル・マイルストーン |
 | `design.md` | デザイン定義。カラー・タイポ・コンポーネント・画面構成 |
-| `prompts/humanize-system-prompt-standard.md` | 変換エンジン：長文・品質重視モード（標準）のプロンプト |
-| `prompts/humanize-system-prompt-evasion.md` | 変換エンジン：長文・検出回避モード（AI対策強化）のプロンプト |
-| `prompts/humanize-system-prompt-short-standard.md` | 変換エンジン：短文・品質重視モードのプロンプト |
-| `prompts/humanize-system-prompt-short-evasion.md` | 変換エンジン：短文・検出回避モードのプロンプト |
 | `future-features.md` | 将来機能メモ。MVPスコープ外の機能はここに書く |
+
+### 変換エンジン プロンプト一覧（`prompts/` 配下）
+
+| ファイル | 用途 | 備考 |
+|---|---|---|
+| `humanize-system-prompt-v4.0.md` | v4.0 変換エンジン（現行メイン） | コピペ対策・主観混入を統合。AI対策モードの1段階目でも使用 |
+| `repair-prompt-v1.0.md` | AI/コピペ修正ループ用（v1.0） | AI対策モードの2段階目。目標: AIスコア50%以下 |
+| `humanize-system-prompt-v3.2.md` | v3.2 変換エンジン（旧版） | v4.0に置き換え済み |
+| `humanize-system-prompt-v3.md` | v3.0 変換エンジン（旧版） | v4.0に置き換え済み |
+| `copyleaks-repair-prompt.md` | Copyleaks修正ループ用（v0.4・旧版） | v1.0に置き換え済み |
+| `humanize-system-prompt-evasion.md` | 長文・検出回避モード（レガシー） | `load-prompt.ts` が参照中 |
+| `humanize-system-prompt-short-evasion.md` | 短文・検出回避モード（レガシー） | `load-prompt.ts` が参照中 |
+| `humanize-system-prompt-standard.md` | 長文・標準モード | 予備 |
+| `humanize-system-prompt-short-standard.md` | 短文・標準モード | 予備 |
+
+**現行アーキテクチャ（2モード体制）:**
+- **普通モード**: v4.0プロンプトで1回変換
+- **AI対策モード**: v4.0変換 → AI/コピペ修正ループ（v1.0）の2段階
 
 ## コーディングルール
 
 1. **コードコメントは日本語で書くこと**
 2. **変数名・関数名・ファイル名は英語（ケバブケース or キャメルケース）**
-3. **変換エンジンのプロンプトは `prompts/` 内の4ファイルから読み込むこと**（コード内にハードコードしない。500字以下は短文用、それ以上は長文用を自動選択）
+3. **変換エンジンのプロンプトは `prompts/` 内のファイルから読み込むこと**（コード内にハードコードしない。500字以下は短文用、それ以上は長文用を自動選択）
 4. **Tailwind のカラー・余白は `design.md` のトークンに従うこと**
 5. **UIコピーは `design.md` 第9章のトーンに従うこと**（「なおす」「整える」など）
 
@@ -48,7 +62,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 変換エンジンは学生のレポートを扱う以上、以下を絶対に守ること：
 
 - 事実・数値・体験・固有名詞・参考文献の**捏造・改変は禁止**
-- 詳細は `prompts/humanize-system-prompt.md` 第1章を参照
+- 詳細は `prompts/humanize-system-prompt-v3.md` 第1章を参照
 
 ## MVPスコープ外の機能
 

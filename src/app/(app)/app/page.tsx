@@ -31,6 +31,7 @@ export default async function AppPage({
         used={0}
         remaining={fallbackRule.periodLimit}
         planLabel={fallbackRule.label}
+        canDoubleCheck={false}
         checkoutSuccess={false}
       />
     );
@@ -48,6 +49,7 @@ export default async function AppPage({
       used={limit.used}
       remaining={limit.remaining}
       planLabel={rule.label}
+      canDoubleCheck={limit.canDoubleCheck}
       checkoutSuccess={checkoutSuccess}
     />
   );

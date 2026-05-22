@@ -23,6 +23,8 @@ export type PlanRule = {
   periodLimit: number;
   // リセット周期
   resetCycle: ResetCycle;
+  // ダブルチェック利用可否（ヘビープラン限定）
+  doubleCheck: boolean;
   // 表示用ラベル
   label: string;
 };
@@ -34,13 +36,15 @@ export const PLAN_RULES: Record<PlanKey, PlanRule> = {
     limitType: "count",
     periodLimit: 3,
     resetCycle: "monthly",
+    doubleCheck: false,
     label: "無料",
   },
   light: {
-    maxChars: 2000,
+    maxChars: 2500,
     limitType: "chars",
     periodLimit: 17_500,
     resetCycle: "weekly",
+    doubleCheck: false,
     label: "ライト（週）",
   },
   heavy_monthly: {
@@ -48,6 +52,7 @@ export const PLAN_RULES: Record<PlanKey, PlanRule> = {
     limitType: "chars",
     periodLimit: 150_000,
     resetCycle: "monthly",
+    doubleCheck: true,
     label: "ヘビー（月）",
   },
   heavy_yearly: {
@@ -55,6 +60,7 @@ export const PLAN_RULES: Record<PlanKey, PlanRule> = {
     limitType: "chars",
     periodLimit: 150_000,
     resetCycle: "monthly",
+    doubleCheck: true,
     label: "ヘビー（年）",
   },
 };

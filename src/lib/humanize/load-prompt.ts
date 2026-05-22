@@ -6,7 +6,7 @@ import path from "node:path";
  * 変換エンジンのシステムプロンプト読み込みユーティリティ。
  *
  * 文字数で短文/長文を自動判定し、対応するプロンプトを返す。
- * モードは回避モード一本化（v1.1）。
+ * v4.0プロンプト体制（長文: v4.0 / 短文: v4.0-short）。
  *
  * 重要:
  * - プロンプトはコード内にハードコードしない（AGENTS.md）
@@ -21,9 +21,12 @@ export const SHORT_TEXT_THRESHOLD = 500;
 
 // 長さごとのファイル名マッピング（回避モード一本化）
 const PROMPT_FILES: Record<TextLength, string> = {
-  short: "humanize-system-prompt-short-evasion.md",
-  long: "humanize-system-prompt-evasion.md",
+  short: "humanize-system-prompt-short-v4.0.md",
+  long: "humanize-system-prompt-v4.0.md",
 };
+
+// ダブルチェック用リペアプロンプトのファイル名
+const REPAIR_PROMPT_FILE = "repair-prompt-v1.0.md";
 
 // キャッシュ
 const cachedPrompts: Record<string, string | null> = {};
@@ -54,5 +57,26 @@ export async function loadHumanizeSystemPrompt(
 
   const content = await readFile(promptPath, "utf8");
   cachedPrompts[textLength] = content;
+  return content;
+}
+
+/**
+ * ダブルチェック用リペアプロンプトを取得する。
+ * 初回呼び出し時のみファイルを読み、以降はキャッシュを返す。
+ */
+export async function loadRepairPrompt(): Promise<string> {
+  const cacheKey = "repair";
+  if (cachedPrompts[cacheKey]) {
+    return cachedPrompts[cacheKey]!;
+  }
+
+  const promptPath = path.join(
+    process.cwd(),
+    "prompts",
+    REPAIR_PROMPT_FILE,
+  );
+
+  const content = await readFile(promptPath, "utf8");
+  cachedPrompts[cacheKey] = content;
   return content;
 }

@@ -22,8 +22,8 @@ export type RecordUsageInput = {
   outputChars: number;
   // 文体
   style: "dearu" | "desumasu";
-  // 変換モード（標準 / AI対策強化）
-  mode?: "standard" | "evasion";
+  // 変換モード（標準 / ダブルチェック）
+  mode?: "standard" | "double_check";
   // 変換にかかった時間（ミリ秒）
   durationMs: number;
 };

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { loadHumanizeSystemPrompt, detectTextLength } from "@/lib/humanize/load-prompt";
+import { loadHumanizeSystemPrompt, loadRepairPrompt, detectTextLength } from "@/lib/humanize/load-prompt";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
 import { rateLimit } from "@/lib/rate-limit";
@@ -38,6 +38,9 @@ const MAX_OUTPUT_TOKENS = 16000;
 // 文体の型
 type Style = "dearu" | "desumasu";
 
+// 変換モードの型
+type Mode = "standard" | "double_check";
+
 /**
  * 文体指定の人間可読な日本語ラベル。
  * システムプロンプトの末尾に「文体指定: 〜」を付与するために使う。
@@ -51,11 +54,12 @@ function styleLabel(style: Style): string {
  */
 function isValidBody(
   body: unknown,
-): body is { text: string; style: Style } {
+): body is { text: string; style: Style; mode?: Mode } {
   if (typeof body !== "object" || body === null) return false;
   const record = body as Record<string, unknown>;
   if (typeof record.text !== "string") return false;
   if (record.style !== "dearu" && record.style !== "desumasu") return false;
+  if (record.mode !== undefined && record.mode !== "standard" && record.mode !== "double_check") return false;
   return true;
 }
 
@@ -183,6 +187,26 @@ export async function POST(request: Request) {
     );
   }
 
+  // --- 3.3 ダブルチェックモードの権限チェック ---
+  const mode: Mode = body.mode ?? "standard";
+  if (mode === "double_check" && !limit.canDoubleCheck) {
+    return Response.json(
+      { error: "ダブルチェックはヘビープランでのみ利用可能です。" },
+      { status: 403 },
+    );
+  }
+
+  // ダブルチェック時は文字数2倍消費。残量が足りるか確認
+  if (mode === "double_check" && limit.limitType === "chars") {
+    const charCost = text.length * 2;
+    if (charCost > limit.remaining) {
+      return Response.json(
+        { error: "ダブルチェックに必要な文字数が残量を超えています。通常モードをお試しください。" },
+        { status: 403 },
+      );
+    }
+  }
+
   // --- 4. システムプロンプトをファイルから読み込む ---
   //     （プロンプトはコード内にハードコードしない、モック時はスキップ）
   let systemPrompt: string;
@@ -225,6 +249,8 @@ export async function POST(request: Request) {
       ];
     } else {
       const client = new Anthropic({ apiKey: apiKey! });
+
+      // --- 1段階目: v4.0 変換 ---
       const message = await client.messages.create({
         model: MODEL_ID,
         max_tokens: MAX_OUTPUT_TOKENS,
@@ -237,7 +263,6 @@ export async function POST(request: Request) {
         ],
       });
 
-      // レスポンスからテキストブロックのみを連結
       const rawOutput = message.content
         .filter(
           (block): block is Extract<typeof block, { type: "text" }> =>
@@ -247,10 +272,47 @@ export async function POST(request: Request) {
         .join("")
         .trim();
 
-      // JSON形式のレスポンスをパース
       const parsed = parseStructuredOutput(rawOutput);
       output = parsed.convertedText;
       modificationPoints = parsed.modificationPoints;
+
+      // --- 2段階目: ダブルチェック（リペア） ---
+      if (mode === "double_check" && output.length > 0) {
+        try {
+          const repairPrompt = await loadRepairPrompt();
+          const repairMessage = await client.messages.create({
+            model: MODEL_ID,
+            max_tokens: MAX_OUTPUT_TOKENS,
+            system: repairPrompt,
+            messages: [
+              {
+                role: "user",
+                content: output,
+              },
+            ],
+          });
+
+          const repairOutput = repairMessage.content
+            .filter(
+              (block): block is Extract<typeof block, { type: "text" }> =>
+                block.type === "text",
+            )
+            .map((block) => block.text)
+            .join("")
+            .trim();
+
+          if (repairOutput.length > 0) {
+            output = repairOutput;
+            modificationPoints.push("ダブルチェック: 表現パターンの追加修正を実施");
+          }
+        } catch (err) {
+          console.error(
+            "[humanize] double_check repair error:",
+            err instanceof Error ? err.message : "unknown",
+          );
+          // リペア失敗時は1段階目の結果をそのまま返す
+        }
+      }
     }
 
     if (output.length === 0) {
@@ -264,12 +326,14 @@ export async function POST(request: Request) {
     const durationMs = Date.now() - startedAt;
 
     // --- 6. 使用実績を usage テーブルに記録 ---
+    // ダブルチェック時は文字数を2倍で記録（消費コスト反映）
+    const recordedChars = mode === "double_check" ? text.length * 2 : text.length;
     try {
       await recordUsage({
-        inputChars: text.length,
+        inputChars: recordedChars,
         outputChars: output.length,
         style: body.style,
-        mode: "evasion",
+        mode,
         durationMs,
       });
     } catch (err) {

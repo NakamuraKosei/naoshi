@@ -21,7 +21,7 @@ type UsageRow = {
   input_chars: number;
   output_chars: number;
   style: "dearu" | "desumasu";
-  mode: "standard" | "evasion" | null;
+  mode: "standard" | "double_check" | null;
   duration_ms: number;
 };
 

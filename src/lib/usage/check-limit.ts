@@ -30,6 +30,8 @@ export type LimitCheckResult = {
   remaining: number;
   // 不許可の場合の理由
   reason?: "unauthenticated" | "quota_exceeded";
+  // ダブルチェック利用可否（ヘビープラン限定）
+  canDoubleCheck: boolean;
   // 認証済みユーザーのID（レートリミット等で使用）
   userId?: string;
 };
@@ -56,6 +58,7 @@ export async function checkLimit(
         resetCycle: "monthly" as ResetCycle,
         used: 0,
         remaining: 0,
+        canDoubleCheck: false,
         reason: "unauthenticated",
       };
     }
@@ -114,6 +117,7 @@ export async function checkLimit(
     resetCycle: rule.resetCycle,
     used,
     remaining,
+    canDoubleCheck: rule.doubleCheck,
     reason: allowed ? undefined : "quota_exceeded",
     userId: uid,
   };

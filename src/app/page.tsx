@@ -60,7 +60,7 @@ export default function Home() {
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-semibold text-text-primary md:text-[32px]">
-                3ステップで、すぐに整う
+                3ステップで、すぐになおる
               </h2>
               <p className="mt-4 text-base leading-[1.75] text-text-secondary">
                 難しい設定は不要です。貼り付けてボタンを押すだけ。

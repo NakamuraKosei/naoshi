@@ -6,8 +6,7 @@ export const metadata: Metadata = {
   description: "Naoshi の特定商取引法に基づく表記です。",
 };
 
-// 特定商取引法に基づく表記（MVP版）
-// TBD値は正式版公開前に確定値で差し替える
+// 特定商取引法に基づく表記
 type Row = {
   label: string;
   value: string;
@@ -72,7 +71,7 @@ const rows: Row[] = [
 
 export default function LegalPage() {
   return (
-    <LegalPageShell title="特定商取引法に基づく表記" updatedAt="2026-04-12">
+    <LegalPageShell title="特定商取引法に基づく表記" updatedAt="2026-05-23">
       <p>
         本ページは、特定商取引に関する法律第11条（通信販売についての広告）に基づく表記です。
       </p>

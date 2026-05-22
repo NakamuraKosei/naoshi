@@ -6,11 +6,10 @@ export const metadata: Metadata = {
   description: "Naoshi のプライバシーポリシーです。",
 };
 
-// Privacy Policy（MVP版）
-// 正式版は法務確認後に差し替え
+// Naoshi のプライバシーポリシー
 export default function PrivacyPage() {
   return (
-    <LegalPageShell title="プライバシーポリシー" updatedAt="2026-04-12">
+    <LegalPageShell title="プライバシーポリシー" updatedAt="2026-05-23">
       <p>
         Naoshi（以下「本サービス」）は、ユーザーのプライバシーを尊重し、
         個人情報の保護に努めます。本プライバシーポリシー（以下「本ポリシー」）は、

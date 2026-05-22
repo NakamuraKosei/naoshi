@@ -40,7 +40,7 @@ export default function Home() {
             </div>
             <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
               <FeatureCard
-                title="日本語学術文に特化"
+                title="日本語レポートに特化"
                 description={<>AI特有の定型冒頭や機械的な列挙を避け、<br />日本語として自然な流れに整えます。</>}
               />
               <FeatureCard

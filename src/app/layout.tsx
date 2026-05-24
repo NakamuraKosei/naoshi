@@ -38,11 +38,20 @@ export const metadata: Metadata = {
     title: siteName,
     description: siteDescription,
     locale: "ja_JP",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Naoshi — AIで書いたレポートを自然な日本語に変換するツール",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: siteName,
     description: siteDescription,
+    images: ["/og-image.png"],
   },
 };
 

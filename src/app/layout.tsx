@@ -20,14 +20,14 @@ const inter = Inter({
 
 // サイト全体のメタデータ（design.md 9.1 のタグラインを採用）
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://naoshi.app";
-const siteName = "Naoshi（ナオシ）";
+const siteName = "AI日本語レポート変換ツール Naoshi（ナオシ）";
 const siteDescription =
-  "AIが書いた日本語レポートを、自然な日本語に整えるツールです。";
+  "AIで書いたレポートを、自然な日本語に。貼り付けてボタンを押すだけで、人が書いたような文章に仕上がります。";
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteName} — AIで書いたレポートを、自然な日本語に。`,
-    template: `%s | ${siteName}`,
+    default: siteName,
+    template: `%s | Naoshi（ナオシ）`,
   },
   description: siteDescription,
   applicationName: "Naoshi",
@@ -35,13 +35,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName,
-    title: "AIで書いたレポートを、自然な日本語に。",
+    title: siteName,
     description: siteDescription,
     locale: "ja_JP",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Naoshi — AIで書いたレポートを、自然な日本語に。",
+    title: siteName,
     description: siteDescription,
   },
 };

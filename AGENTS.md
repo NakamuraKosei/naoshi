@@ -20,21 +20,29 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ### 変換エンジン プロンプト一覧（`prompts/` 配下）
 
+**現行（v4.0体系）— `load-prompt.ts` が参照するファイル:**
+
 | ファイル | 用途 | 備考 |
 |---|---|---|
-| `humanize-system-prompt-v4.0.md` | v4.0 変換エンジン（現行メイン） | コピペ対策・主観混入を統合。AI対策モードの1段階目でも使用 |
-| `repair-prompt-v1.0.md` | AI/コピペ修正ループ用（v1.0） | AI対策モードの2段階目。目標: AIスコア50%以下 |
-| `humanize-system-prompt-v3.2.md` | v3.2 変換エンジン（旧版） | v4.0に置き換え済み |
-| `humanize-system-prompt-v3.md` | v3.0 変換エンジン（旧版） | v4.0に置き換え済み |
-| `copyleaks-repair-prompt.md` | Copyleaks修正ループ用（v0.4・旧版） | v1.0に置き換え済み |
-| `humanize-system-prompt-evasion.md` | 長文・検出回避モード（レガシー） | `load-prompt.ts` が参照中 |
-| `humanize-system-prompt-short-evasion.md` | 短文・検出回避モード（レガシー） | `load-prompt.ts` が参照中 |
-| `humanize-system-prompt-standard.md` | 長文・標準モード | 予備 |
-| `humanize-system-prompt-short-standard.md` | 短文・標準モード | 予備 |
+| `humanize-system-prompt-v4.0.md` | 長文変換（500字超） | コピペ対策・主観混入を統合。ダブルチェックの1段階目でも使用 |
+| `humanize-system-prompt-short-v4.0.md` | 短文変換（500字以下） | v4.0の短文特化版 |
+| `repair-prompt-v1.0.md` | ダブルチェック用修正ループ | ダブルチェックの2段階目。コピペチェッカー対策 |
+
+**アーカイブ（旧版・コード未参照）:**
+
+| ファイル | 備考 |
+|---|---|
+| `humanize-system-prompt-v3.2.md` | v4.0に置き換え済み |
+| `humanize-system-prompt-v3.md` | v4.0に置き換え済み |
+| `copyleaks-repair-prompt.md` | repair-v1.0に置き換え済み |
+| `humanize-system-prompt-evasion.md` | レガシー。コード未参照 |
+| `humanize-system-prompt-short-evasion.md` | レガシー。コード未参照 |
+| `humanize-system-prompt-standard.md` | レガシー。コード未参照 |
+| `humanize-system-prompt-short-standard.md` | レガシー。コード未参照 |
 
 **現行アーキテクチャ（2モード体制）:**
-- **普通モード**: v4.0プロンプトで1回変換
-- **AI対策モード**: v4.0変換 → AI/コピペ修正ループ（v1.0）の2段階
+- **通常モード**: v4.0プロンプトで1回変換（500字以下は短文版を自動選択）
+- **ダブルチェックモード**: v4.0変換 → repair-v1.0 修正ループの2段階（ヘビープラン限定）
 
 ## コーディングルール
 
@@ -62,7 +70,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 変換エンジンは学生のレポートを扱う以上、以下を絶対に守ること：
 
 - 事実・数値・体験・固有名詞・参考文献の**捏造・改変は禁止**
-- 詳細は `prompts/humanize-system-prompt-v3.md` 第1章を参照
+- 詳細は `prompts/humanize-system-prompt-v4.0.md` を参照
 
 ## MVPスコープ外の機能
 

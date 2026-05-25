@@ -224,14 +224,19 @@ export function PricingPlans({ className }: PricingPlansProps) {
         className,
       )}
     >
-      {plans.map((plan) => (
+      {plans.map((plan) => {
+        // 現在契約中のプランか（無料は除く）
+        const isCurrent = currentPlan !== null && currentPlan !== "free" && plan.id === currentPlan;
+        return (
         <Card
           key={plan.id}
           interactive
           className={cn(
             "flex h-full flex-col gap-6",
+            // 現在のプランは強調ボーダー
+            isCurrent && "border-2 border-primary ring-2 ring-primary/20",
             // 人気プランはプライマリ色のボーダーで強調（design.md 6.4）
-            plan.popular && "border-2 border-primary",
+            !isCurrent && plan.popular && "border-2 border-primary",
           )}
         >
           <div className="space-y-3">
@@ -239,7 +244,8 @@ export function PricingPlans({ className }: PricingPlansProps) {
               <h3 className="text-xl font-semibold text-text-primary">
                 {plan.name}
               </h3>
-              {plan.popular && <Badge variant="primary">人気</Badge>}
+              {isCurrent && <Badge variant="primary">現在のプラン</Badge>}
+              {!isCurrent && plan.popular && <Badge variant="primary">人気</Badge>}
             </div>
             <p className="text-sm text-text-secondary">{plan.summary}</p>
           </div>
@@ -277,18 +283,29 @@ export function PricingPlans({ className }: PricingPlansProps) {
           </ul>
 
           <div className="mt-auto">
-            <Button
-              variant={plan.popular ? "primary" : "secondary"}
-              className="w-full"
-              onClick={() => handleSelect(plan.id)}
-              disabled={loadingPlan !== null}
-              aria-busy={loadingPlan === plan.id}
-            >
-              {loadingPlan === plan.id ? "読み込み中…" : plan.cta}
-            </Button>
+            {isCurrent ? (
+              <Button
+                variant="secondary"
+                className="w-full cursor-default opacity-70"
+                disabled
+              >
+                現在のプラン
+              </Button>
+            ) : (
+              <Button
+                variant={plan.popular ? "primary" : "secondary"}
+                className="w-full"
+                onClick={() => handleSelect(plan.id)}
+                disabled={loadingPlan !== null}
+                aria-busy={loadingPlan === plan.id}
+              >
+                {loadingPlan === plan.id || loadingPlan === "portal" ? "読み込み中…" : plan.cta}
+              </Button>
+            )}
           </div>
         </Card>
-      ))}
+        );
+      })}
       </div>
 
       {/* プラン変更説明モーダル（有料ユーザー向け） */}

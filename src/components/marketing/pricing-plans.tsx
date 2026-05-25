@@ -244,7 +244,7 @@ export function PricingPlans({ className }: PricingPlansProps) {
               <h3 className="text-xl font-semibold text-text-primary">
                 {plan.name}
               </h3>
-              {isCurrent && <Badge variant="primary">現在のプラン</Badge>}
+              {isCurrent && <Badge variant="primary" className="whitespace-nowrap">現在のプラン</Badge>}
               {!isCurrent && plan.popular && <Badge variant="primary">人気</Badge>}
             </div>
             <p className="text-sm text-text-secondary">{plan.summary}</p>

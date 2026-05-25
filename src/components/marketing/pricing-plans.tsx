@@ -241,7 +241,7 @@ export function PricingPlans({ className }: PricingPlansProps) {
         >
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-text-primary">
+              <h3 className="text-xl font-semibold whitespace-nowrap text-text-primary">
                 {plan.name}
               </h3>
               {isCurrent && <Badge variant="primary" className="whitespace-nowrap">現在のプラン</Badge>}

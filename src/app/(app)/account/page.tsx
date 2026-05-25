@@ -115,7 +115,7 @@ export default async function AccountPage() {
             </div>
           </CardContent>
           <CardFooter>
-            <PortalButton hasCustomer={Boolean(profile?.stripe_customer_id)} />
+            <PortalButton />
           </CardFooter>
         </Card>
 

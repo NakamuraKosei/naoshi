@@ -131,10 +131,30 @@ export function PricingPlans({ className }: PricingPlansProps) {
   // 既に有料プランに加入しているか
   const hasPaidPlan = currentPlan !== null && currentPlan !== "free";
 
+  // Stripe Customer Portal を開く（プラン変更・解約用）
+  async function openPortal() {
+    setLoadingPlan("portal");
+    setErrorMessage(null);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        setErrorMessage(data.error ?? "ポータルの起動に失敗しました。");
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setErrorMessage("通信エラーが発生しました。もう一度お試しください。");
+    } finally {
+      setLoadingPlan(null);
+    }
+  }
+
   /**
    * プランボタンのクリックハンドラ
    * - free: /login へ誘導
-   * - 既に有料プランのユーザー: /account へ誘導（Customer Portalでプラン変更）
+   * - ライト・ヘビー月ユーザー: Stripe Customer Portal へ直接飛ばす（プラン変更）
+   * - ヘビー年ユーザー: 「途中変更不可」モーダルを表示
    * - 有料プラン（新規）: /api/stripe/checkout を叩き、返ってきた URL にリダイレクト
    *   未ログインの場合は /login?redirect=/pricing へ
    */
@@ -145,9 +165,15 @@ export function PricingPlans({ className }: PricingPlansProps) {
       return;
     }
 
-    // 既に有料プランに加入している場合はモーダルで説明を表示
+    // 既に有料プランに加入している場合
     if (hasPaidPlan) {
-      setShowPlanChangeModal(true);
+      // ヘビー年プランは途中変更不可 → モーダルで案内
+      if (currentPlan === "heavy_yearly") {
+        setShowPlanChangeModal(true);
+        return;
+      }
+      // ライト・ヘビー月はPortalで直接プラン変更
+      await openPortal();
       return;
     }
 
@@ -282,7 +308,7 @@ export function PricingPlans({ className }: PricingPlansProps) {
             {/* ヘッダー */}
             <div className="mb-5 flex items-start justify-between">
               <h3 className="text-lg font-bold text-text-primary">
-                プラン変更について
+                年間プランについて
               </h3>
               <button
                 type="button"
@@ -304,36 +330,15 @@ export function PricingPlans({ className }: PricingPlansProps) {
               </p>
             </div>
 
-            {/* 説明リスト */}
-            <ul className="mb-6 space-y-3 text-sm text-text-secondary">
-              <li className="flex items-start gap-2.5">
-                <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">✓</span>
-                <span>プラン変更時、<strong className="text-text-primary">二重請求にはなりません。</strong>旧プランは自動で切り替わります。</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">✓</span>
-                <span>アップグレードの場合、差額のみのお支払いです。ダウングレードの場合、次回更新日から新プランの料金が適用されます。</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-primary-light text-xs font-bold text-primary">✓</span>
-                <span>プラン変更はマイページからいつでも安心して行えます。</span>
-              </li>
-            </ul>
+            {/* 説明 */}
+            <p className="mb-6 text-sm leading-relaxed text-text-secondary">
+              年間プランは契約期間中のプラン変更ができません。契約期間の終了後に別のプランをお選びいただけます。解約をご希望の場合は、このページ下部の「解約をご希望の方はこちら」からお手続きください。
+            </p>
 
             {/* ボタン */}
             <div className="flex flex-col gap-3 sm:flex-row-reverse">
               <Button
                 variant="primary"
-                className="w-full sm:w-auto sm:flex-1"
-                onClick={() => {
-                  setShowPlanChangeModal(false);
-                  router.push("/account");
-                }}
-              >
-                マイページでプランを変更する
-              </Button>
-              <Button
-                variant="secondary"
                 className="w-full sm:w-auto sm:flex-1"
                 onClick={() => setShowPlanChangeModal(false)}
               >

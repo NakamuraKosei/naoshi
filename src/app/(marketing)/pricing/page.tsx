@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { Button } from "@/components/ui/button";
 import { PricingPlans } from "@/components/marketing/pricing-plans";
 import { FaqList } from "@/components/marketing/faq-list";
+import { CancelLink } from "@/components/marketing/cancel-link";
 
 export const metadata: Metadata = {
   title: "料金プラン",
@@ -89,6 +90,10 @@ export default function PricingPage() {
             </div>
             <div className="mt-12">
               <FaqList items={pricingFaqs} />
+            </div>
+            {/* 解約リンク（目立たない位置に配置） */}
+            <div className="mt-12">
+              <CancelLink />
             </div>
           </div>
         </section>

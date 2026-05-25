@@ -49,6 +49,7 @@ export default function PricingPage() {
             </h1>
             <p className="mt-6 text-lg leading-[1.75] text-text-secondary">
               必要な分だけ、無理なく使えるプランを用意しました。
+              <br />
               いつでもアップグレード・解約できます。
             </p>
           </div>

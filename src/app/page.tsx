@@ -148,7 +148,7 @@ export default function Home() {
               AIっぽさのない、<br className="md:hidden" />自然なレポートへ。
             </h2>
             <p className="mt-4 text-base leading-[1.75] text-text-on-dark/80">
-              貼って、なおして、提出。無料プランなら、メール登録だけですぐに試せます。
+              日本語特化AIヒューマナイザー。無料プランなら、メール登録だけですぐに試せます。
             </p>
             <div className="mt-10">
               <a href="#hero">

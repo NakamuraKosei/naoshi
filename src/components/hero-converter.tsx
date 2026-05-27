@@ -191,9 +191,8 @@ export function HeroConverter() {
             </p>
           </div>
 
-          {/* カテゴリ・文体セレクタ */}
+          {/* 文体セレクタ */}
           <div className="mt-10 flex flex-col items-center gap-3">
-            <CategorySelector value={category} onChange={handleCategoryChange} />
             <StyleSelector value={style} onChange={setStyle} />
           </div>
 

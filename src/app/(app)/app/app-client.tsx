@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,9 @@ type HumanizeResponse = {
   durationMs: number;
   modificationPoints?: string[];
 };
+
+// LP → /app へテキストを引き継ぐための sessionStorage キー
+const PENDING_TEXT_KEY = "naoshi_pending_text";
 
 // Server Component から渡されるプラン情報
 // リセット周期
@@ -70,6 +73,15 @@ export function AppClient({
   // 使用量をクライアント側でトラッキング（変換成功後に即時反映するため）
   const [currentUsed, setCurrentUsed] = useState(initialUsed);
   const [currentRemaining, setCurrentRemaining] = useState(initialRemaining);
+
+  // LPから引き継いだテキストがあれば入力欄にセット
+  useEffect(() => {
+    const pending = sessionStorage.getItem(PENDING_TEXT_KEY);
+    if (pending) {
+      setInput(pending);
+      sessionStorage.removeItem(PENDING_TEXT_KEY);
+    }
+  }, []);
 
   // カテゴリ変更時に文体のデフォルトも切り替える
   function handleCategoryChange(newCategory: Category) {
@@ -192,9 +204,13 @@ export function AppClient({
               1回あたり最大 {maxChars.toLocaleString()} 字
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 md:flex-col md:items-end">
-            <CategorySelector value={category} onChange={handleCategoryChange} />
-            <StyleSelector value={style} onChange={setStyle} />
+          <div className="flex flex-col items-end gap-2">
+            {/* 1行目: カテゴリ + 文体 */}
+            <div className="flex flex-wrap items-center gap-3">
+              <CategorySelector value={category} onChange={handleCategoryChange} />
+              <StyleSelector value={style} onChange={setStyle} />
+            </div>
+            {/* 2行目: ダブルチェック */}
             {canDoubleCheck && (
               <DoubleCheckToggle
                 checked={doubleCheck}

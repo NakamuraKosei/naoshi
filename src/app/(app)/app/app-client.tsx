@@ -63,6 +63,11 @@ export function AppClient({
   const [modificationPoints, setModificationPoints] = useState<string[]>([]);
   // 変換完了後の確認メッセージ表示フラグ
   const [showCompleteOverlay, setShowCompleteOverlay] = useState(false);
+  // フィードバック
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
   // サクセスバナー表示（自動消去）
   const [showSuccess, setShowSuccess] = useState(checkoutSuccess);
   if (checkoutSuccess && showSuccess) {
@@ -167,6 +172,32 @@ export function AppClient({
       setErrorMessage("うまく変換できませんでした。もう一度お試しください。");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  /** フィードバック送信 */
+  async function handleFeedbackSubmit() {
+    if (feedbackComment.trim().length === 0) return;
+    setFeedbackSending(true);
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comment: feedbackComment.trim() }),
+      });
+      if (res.ok) {
+        setFeedbackSent(true);
+        setFeedbackComment("");
+        // 3秒後にフィードバック欄を閉じる
+        setTimeout(() => {
+          setShowFeedback(false);
+          setFeedbackSent(false);
+        }, 3000);
+      }
+    } catch {
+      // 送信失敗時は何もしない（控えめな機能なので）
+    } finally {
+      setFeedbackSending(false);
     }
   }
 
@@ -336,6 +367,41 @@ export function AppClient({
                 ))}
               </ul>
             </details>
+          </div>
+        )}
+
+        {/* フィードバック（変換完了後のみ表示） */}
+        {output && !isLoading && (
+          <div className="mt-4 text-right">
+            {!showFeedback ? (
+              <button
+                onClick={() => setShowFeedback(true)}
+                className="text-xs text-text-muted underline-offset-2 hover:text-text-secondary hover:underline"
+              >
+                フィードバックを送る
+              </button>
+            ) : feedbackSent ? (
+              <p className="text-xs text-[#10B981]">ありがとうございます！</p>
+            ) : (
+              <div className="ml-auto flex max-w-md items-end gap-2">
+                <textarea
+                  value={feedbackComment}
+                  onChange={(e) => setFeedbackComment(e.target.value)}
+                  placeholder="変換の感想やご要望をお聞かせください"
+                  className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none"
+                  rows={2}
+                  maxLength={1000}
+                  disabled={feedbackSending}
+                />
+                <button
+                  onClick={handleFeedbackSubmit}
+                  disabled={feedbackSending || feedbackComment.trim().length === 0}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
+                >
+                  送信
+                </button>
+              </div>
+            )}
           </div>
         )}
 

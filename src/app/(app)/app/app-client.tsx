@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 
 // 文体の型定義
 type Style = "dearu" | "desumasu";
+type Category = "report" | "business";
 type LimitType = "count" | "chars";
 
 // API レスポンスの型
@@ -49,6 +50,7 @@ export function AppClient({
 }: AppClientProps) {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const [category, setCategory] = useState<Category>("report");
   const [style, setStyle] = useState<Style>("dearu");
   const [doubleCheck, setDoubleCheck] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,6 +70,12 @@ export function AppClient({
   // 使用量をクライアント側でトラッキング（変換成功後に即時反映するため）
   const [currentUsed, setCurrentUsed] = useState(initialUsed);
   const [currentRemaining, setCurrentRemaining] = useState(initialRemaining);
+
+  // カテゴリ変更時に文体のデフォルトも切り替える
+  function handleCategoryChange(newCategory: Category) {
+    setCategory(newCategory);
+    setStyle(newCategory === "report" ? "dearu" : "desumasu");
+  }
 
   const charCount = input.length;
   const isOverLimit = charCount > maxChars;
@@ -106,6 +114,7 @@ export function AppClient({
         body: JSON.stringify({
           text: input,
           style,
+          category,
           mode: doubleCheck ? "double_check" : "standard",
         }),
       });
@@ -184,6 +193,7 @@ export function AppClient({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 md:flex-col md:items-end">
+            <CategorySelector value={category} onChange={handleCategoryChange} />
             <StyleSelector value={style} onChange={setStyle} />
             {canDoubleCheck && (
               <DoubleCheckToggle
@@ -419,6 +429,36 @@ function LimitExceededModal({
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** カテゴリセレクタ（レポート / ビジネス） */
+function CategorySelector({ value, onChange }: { value: Category; onChange: (v: Category) => void }) {
+  const options: { key: Category; label: string }[] = [
+    { key: "report", label: "レポート" },
+    { key: "business", label: "ビジネス" },
+  ];
+  return (
+    <div role="radiogroup" aria-label="カテゴリの選択" className="inline-flex items-center rounded-full border border-border bg-surface p-1">
+      {options.map((opt) => {
+        const selected = value === opt.key;
+        return (
+          <button
+            key={opt.key}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => onChange(opt.key)}
+            className={cn(
+              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              selected ? "bg-surface-dark text-white" : "text-text-secondary hover:text-text-primary",
+            )}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

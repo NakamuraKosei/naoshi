@@ -49,7 +49,7 @@ export default function Home() {
               />
               <FeatureCard
                 title="レポートもビジネス文書も"
-                description={<>大学のレポートからメール・提案書・報告書まで。<br />用途にあわせてモードを選べます。</>}
+                description="大学のレポートからメール・提案書・報告書まで。用途にあわせてモードを選べます。"
               />
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { Resend } from "resend";
 
 /**
  * /api/feedback
@@ -19,6 +20,10 @@ export const runtime = "nodejs";
 
 // コメントの最大文字数
 const MAX_COMMENT_LENGTH = 1000;
+
+// メール通知用（Resend）
+const resend = new Resend(process.env.RESEND_API_KEY);
+const NOTIFY_EMAIL = "naoshisupport@gmail.com";
 
 export async function POST(request: Request) {
   // --- 1. リクエストボディのパース ---
@@ -82,6 +87,21 @@ export async function POST(request: Request) {
       return Response.json(
         { error: "送信に失敗しました。もう一度お試しください。" },
         { status: 500 },
+      );
+    }
+
+    // --- 4. メール通知（失敗してもユーザーにはエラーを返さない） ---
+    try {
+      await resend.emails.send({
+        from: "Naoshi <onboarding@resend.dev>",
+        to: NOTIFY_EMAIL,
+        subject: "【Naoshi】新しいフィードバック",
+        text: `ユーザー: ${user.email ?? user.id}\n\nコメント:\n${comment}\n\n送信日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}`,
+      });
+    } catch (mailErr) {
+      console.error(
+        "[feedback] mail notification error:",
+        mailErr instanceof Error ? mailErr.message : "unknown",
       );
     }
 

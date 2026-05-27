@@ -48,8 +48,8 @@ export default function Home() {
                 description="著者名・書名・年号・直接引用は一切改変しません。安心して提出できます。"
               />
               <FeatureCard
-                title="だ・である調 / です・ます調"
-                description={<>学術レポートにも感想文にも。<br />用途にあわせて文体を選べます。</>}
+                title="レポートもビジネス文書も"
+                description={<>大学のレポートからメール・提案書・報告書まで。<br />用途にあわせてモードを選べます。</>}
               />
             </div>
           </div>

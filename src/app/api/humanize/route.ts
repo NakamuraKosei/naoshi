@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { loadHumanizeSystemPrompt, loadRepairPrompt, detectTextLength } from "@/lib/humanize/load-prompt";
+import { loadHumanizeSystemPrompt, loadRepairPrompt, detectTextLength, type Category } from "@/lib/humanize/load-prompt";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
 import { rateLimit } from "@/lib/rate-limit";
@@ -41,6 +41,8 @@ type Style = "dearu" | "desumasu";
 // 変換モードの型
 type Mode = "standard" | "double_check";
 
+// カテゴリの型（レポート / ビジネス）はload-promptからインポート済み
+
 /**
  * 文体指定の人間可読な日本語ラベル。
  * システムプロンプトの末尾に「文体指定: 〜」を付与するために使う。
@@ -54,12 +56,13 @@ function styleLabel(style: Style): string {
  */
 function isValidBody(
   body: unknown,
-): body is { text: string; style: Style; mode?: Mode } {
+): body is { text: string; style: Style; mode?: Mode; category?: Category } {
   if (typeof body !== "object" || body === null) return false;
   const record = body as Record<string, unknown>;
   if (typeof record.text !== "string") return false;
   if (record.style !== "dearu" && record.style !== "desumasu") return false;
   if (record.mode !== undefined && record.mode !== "standard" && record.mode !== "double_check") return false;
+  if (record.category !== undefined && record.category !== "report" && record.category !== "business") return false;
   return true;
 }
 
@@ -187,7 +190,8 @@ export async function POST(request: Request) {
     );
   }
 
-  // --- 3.3 ダブルチェックモードの権限チェック ---
+  // --- 3.3 カテゴリ・モードの取得 ---
+  const category: Category = body.category ?? "report";
   const mode: Mode = body.mode ?? "standard";
   if (mode === "double_check" && !limit.canDoubleCheck) {
     return Response.json(
@@ -212,9 +216,9 @@ export async function POST(request: Request) {
   let systemPrompt: string;
   if (!IS_MOCK) {
     try {
-      // 文字数で短文/長文を自動切り替え
+      // カテゴリ × 文字数で短文/長文を自動切り替え
       const textLength = detectTextLength(text.length);
-      const basePrompt = await loadHumanizeSystemPrompt(textLength);
+      const basePrompt = await loadHumanizeSystemPrompt(textLength, category);
       // 文体指定を末尾に1行追加
       systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}\n\n---\n\n## 出力フォーマット\n\n以下のJSON形式で出力してください。JSONのみを出力し、他のテキストは含めないでください。\n\n\`\`\`json\n{\n  "converted_text": "変換後の本文をここに記述",\n  "modification_points": [\n    "修正ポイント1",\n    "修正ポイント2",\n    "修正ポイント3"\n  ]\n}\n\`\`\`\n\n- converted_text: 変換後の本文（従来通りのルールで書き換えた全文）\n- modification_points: 今回の書き換えで行った修正の要約を3〜5個、箇条書きで記述。具体的にどの表現をどう変えたかがわかるように書くこと。`;
     } catch (err) {
@@ -279,7 +283,7 @@ export async function POST(request: Request) {
       // --- 2段階目: ダブルチェック（リペア） ---
       if (mode === "double_check" && output.length > 0) {
         try {
-          const repairPrompt = await loadRepairPrompt();
+          const repairPrompt = await loadRepairPrompt(category);
           const repairMessage = await client.messages.create({
             model: MODEL_ID,
             max_tokens: MAX_OUTPUT_TOKENS,
@@ -334,6 +338,7 @@ export async function POST(request: Request) {
         outputChars: output.length,
         style: body.style,
         mode,
+        category,
         durationMs,
       });
     } catch (err) {

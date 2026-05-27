@@ -5,8 +5,8 @@ import path from "node:path";
 /**
  * 変換エンジンのシステムプロンプト読み込みユーティリティ。
  *
- * 文字数で短文/長文を自動判定し、対応するプロンプトを返す。
- * v4.0プロンプト体制（長文: v4.0 / 短文: v4.0-short）。
+ * カテゴリ（レポート / ビジネス）× 文字数（短文 / 長文）で
+ * 対応するプロンプトを自動選択して返す。
  *
  * 重要:
  * - プロンプトはコード内にハードコードしない（AGENTS.md）
@@ -16,17 +16,29 @@ import path from "node:path";
 // 文字数の長さ区分
 export type TextLength = "short" | "long";
 
+// カテゴリの型（レポート / ビジネス）
+export type Category = "report" | "business";
+
 // 短文判定の閾値（500字以下を短文とする）
 export const SHORT_TEXT_THRESHOLD = 500;
 
-// 長さごとのファイル名マッピング（回避モード一本化）
-const PROMPT_FILES: Record<TextLength, string> = {
-  short: "humanize-system-prompt-short-v4.0.md",
-  long: "humanize-system-prompt-v4.0.md",
+// カテゴリ × 長さごとのファイル名マッピング
+const PROMPT_FILES: Record<Category, Record<TextLength, string>> = {
+  report: {
+    short: "humanize-system-prompt-short-v4.0.md",
+    long: "humanize-system-prompt-v4.0.md",
+  },
+  business: {
+    short: "humanize-business-short-v1.0.md",
+    long: "humanize-business-v1.1.md",
+  },
 };
 
-// ダブルチェック用リペアプロンプトのファイル名
-const REPAIR_PROMPT_FILE = "repair-prompt-v1.0.md";
+// カテゴリごとのダブルチェック用リペアプロンプト
+const REPAIR_PROMPT_FILES: Record<Category, string> = {
+  report: "repair-prompt-v1.0.md",
+  business: "repair-business-v1.0.md",
+};
 
 // キャッシュ
 const cachedPrompts: Record<string, string | null> = {};
@@ -39,33 +51,14 @@ export function detectTextLength(charCount: number): TextLength {
 }
 
 /**
- * 長さ区分に応じたシステムプロンプト本文を取得する。
+ * カテゴリ × 長さ区分に応じたシステムプロンプト本文を取得する。
  * 初回呼び出し時のみファイルを読み、以降はキャッシュを返す。
  */
 export async function loadHumanizeSystemPrompt(
   textLength: TextLength = "long",
+  category: Category = "report",
 ): Promise<string> {
-  if (cachedPrompts[textLength]) {
-    return cachedPrompts[textLength]!;
-  }
-
-  const promptPath = path.join(
-    process.cwd(),
-    "prompts",
-    PROMPT_FILES[textLength],
-  );
-
-  const content = await readFile(promptPath, "utf8");
-  cachedPrompts[textLength] = content;
-  return content;
-}
-
-/**
- * ダブルチェック用リペアプロンプトを取得する。
- * 初回呼び出し時のみファイルを読み、以降はキャッシュを返す。
- */
-export async function loadRepairPrompt(): Promise<string> {
-  const cacheKey = "repair";
+  const cacheKey = `${category}:${textLength}`;
   if (cachedPrompts[cacheKey]) {
     return cachedPrompts[cacheKey]!;
   }
@@ -73,7 +66,30 @@ export async function loadRepairPrompt(): Promise<string> {
   const promptPath = path.join(
     process.cwd(),
     "prompts",
-    REPAIR_PROMPT_FILE,
+    PROMPT_FILES[category][textLength],
+  );
+
+  const content = await readFile(promptPath, "utf8");
+  cachedPrompts[cacheKey] = content;
+  return content;
+}
+
+/**
+ * カテゴリに応じたダブルチェック用リペアプロンプトを取得する。
+ * 初回呼び出し時のみファイルを読み、以降はキャッシュを返す。
+ */
+export async function loadRepairPrompt(
+  category: Category = "report",
+): Promise<string> {
+  const cacheKey = `repair:${category}`;
+  if (cachedPrompts[cacheKey]) {
+    return cachedPrompts[cacheKey]!;
+  }
+
+  const promptPath = path.join(
+    process.cwd(),
+    "prompts",
+    REPAIR_PROMPT_FILES[category],
   );
 
   const content = await readFile(promptPath, "utf8");

@@ -11,6 +11,9 @@ import { cn } from "@/lib/cn";
 // 文体の型定義
 type Style = "dearu" | "desumasu";
 
+// カテゴリの型定義（レポート / ビジネス）
+type Category = "report" | "business";
+
 // APIレスポンスの型
 type HumanizeResponse = {
   output: string;
@@ -34,6 +37,7 @@ const DISPLAY_MAX_CHARS = 5000;
 export function HeroConverter() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const [category, setCategory] = useState<Category>("report");
   const [style, setStyle] = useState<Style>("dearu");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -49,6 +53,13 @@ export function HeroConverter() {
 
   // ログイン完了後の自動変換フラグ
   const pendingConvert = useRef(false);
+
+  // カテゴリ変更時に文体のデフォルトも切り替える
+  function handleCategoryChange(newCategory: Category) {
+    setCategory(newCategory);
+    // レポート→だ・である調、ビジネス→です・ます調をデフォルトに
+    setStyle(newCategory === "report" ? "dearu" : "desumasu");
+  }
 
   const charCount = input.length;
 
@@ -98,7 +109,7 @@ export function HeroConverter() {
       const res = await fetch("/api/humanize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, style }),
+        body: JSON.stringify({ text, style, category }),
       });
 
       // 未ログイン or セッション切れ
@@ -132,7 +143,7 @@ export function HeroConverter() {
     } finally {
       setIsLoading(false);
     }
-  }, [input, style]);
+  }, [input, style, category]);
 
   /** 「なおす」ボタン押下 */
   function handleSubmit() {
@@ -180,8 +191,9 @@ export function HeroConverter() {
             </p>
           </div>
 
-          {/* 文体セレクタ */}
+          {/* カテゴリ・文体セレクタ */}
           <div className="mt-10 flex flex-col items-center gap-3">
+            <CategorySelector value={category} onChange={handleCategoryChange} />
             <StyleSelector value={style} onChange={setStyle} />
           </div>
 
@@ -329,6 +341,48 @@ function PenIcon() {
       <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
       <path d="m15 5 4 4" />
     </svg>
+  );
+}
+
+/** カテゴリセレクタ（レポート / ビジネス） */
+function CategorySelector({
+  value,
+  onChange,
+}: {
+  value: Category;
+  onChange: (v: Category) => void;
+}) {
+  const options: { key: Category; label: string }[] = [
+    { key: "report", label: "レポート" },
+    { key: "business", label: "ビジネス" },
+  ];
+  return (
+    <div
+      role="radiogroup"
+      aria-label="カテゴリの選択"
+      className="inline-flex items-center rounded-full border border-border bg-surface p-1"
+    >
+      {options.map((opt) => {
+        const selected = value === opt.key;
+        return (
+          <button
+            key={opt.key}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => onChange(opt.key)}
+            className={cn(
+              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              selected
+                ? "bg-surface-dark text-white"
+                : "text-text-secondary hover:text-text-primary",
+            )}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

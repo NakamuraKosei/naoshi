@@ -24,6 +24,8 @@ export type RecordUsageInput = {
   style: "dearu" | "desumasu";
   // 変換モード（標準 / ダブルチェック）
   mode?: "standard" | "double_check";
+  // カテゴリ（レポート / ビジネス）
+  category?: "report" | "business";
   // 変換にかかった時間（ミリ秒）
   durationMs: number;
 };
@@ -49,6 +51,7 @@ export async function recordUsage(input: RecordUsageInput): Promise<void> {
     output_chars: input.outputChars,
     style: input.style,
     mode: input.mode ?? "standard",
+    category: input.category ?? "report",
     duration_ms: input.durationMs,
   });
 }

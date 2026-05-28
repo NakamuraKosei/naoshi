@@ -25,7 +25,7 @@ const rows: Row[] = [
   { label: "メールアドレス", value: "naoshisupport@gmail.com" },
   {
     label: "販売URL",
-    value: "https://naoshi.vercel.app",
+    value: "https://naoshiai.com",
   },
   {
     label: "販売価格",

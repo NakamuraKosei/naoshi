@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 // sitemap.xml の生成
 // 検索エンジンにサイト構造を伝え、インデックスを促進する
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://naoshi.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://naoshiai.com";
   const now = new Date();
 
   return [

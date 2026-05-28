@@ -19,7 +19,7 @@ const inter = Inter({
 });
 
 // サイト全体のメタデータ（design.md 9.1 のタグラインを採用）
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://naoshi.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://naoshiai.com";
 const siteName = "AIヒューマナイザー Naoshi（ナオシ）| AI文章を自然な日本語に";
 const siteDescription =
   "日本語特化のAIヒューマナイザー。AIで書いたレポートを貼り付けるだけで、人が書いたような自然な文章に仕上がります。";

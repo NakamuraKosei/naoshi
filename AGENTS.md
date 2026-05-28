@@ -26,10 +26,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 |---|---|---|
 | `humanize-system-prompt-v4.0.md` | 長文変換（500字超） | コピペ対策・主観混入を統合。ダブルチェックの1段階目でも使用 |
 | `humanize-system-prompt-short-v4.0.md` | 短文変換（500字以下） | v4.0の短文特化版 |
-| `repair-prompt-v1.0.md` | ダブルチェック用修正ループ | ダブルチェックの2段階目。コピペチェッカー対策 |
+| `repair-prompt-v1.1.md` | ダブルチェック用修正ループ | ダブルチェックの2段階目。NGワードリスト・文体水準維持を追加 |
 | `humanize-business-v1.1.md` | ビジネス長文変換（500字超） | フォーマリティ判定付き。ビジネス版ダブルチェック1段階目でも使用 |
-| `humanize-business-short-v1.0.md` | ビジネス短文変換（500字以下） | ビジネス版の短文特化版 |
-| `repair-business-v1.0.md` | ビジネス用ダブルチェック修正ループ | ビジネス版の2段階目。意味・責任範囲の保全重視 |
+| `humanize-business-short-v1.1.md` | ビジネス短文変換（500字以下） | v1.1の短文特化版。フォーマル度判定・意味保全を追加 |
+| `repair-business-v1.1.md` | ビジネス用ダブルチェック修正ループ | ビジネス版の2段階目。NGワードリスト・フォーマル度保護を強化 |
 
 **アーカイブ（旧版・コード未参照）:**
 
@@ -37,16 +37,19 @@ This version has breaking changes — APIs, conventions, and file structure may 
 |---|---|
 | `humanize-system-prompt-v3.2.md` | v4.0に置き換え済み |
 | `humanize-system-prompt-v3.md` | v4.0に置き換え済み |
+| `repair-prompt-v1.0.md` | v1.1に置き換え済み |
+| `repair-business-v1.0.md` | v1.1に置き換え済み |
 | `copyleaks-repair-prompt.md` | repair-v1.0に置き換え済み |
 | `humanize-system-prompt-evasion.md` | レガシー。コード未参照 |
 | `humanize-system-prompt-short-evasion.md` | レガシー。コード未参照 |
 | `humanize-system-prompt-standard.md` | レガシー。コード未参照 |
 | `humanize-system-prompt-short-standard.md` | レガシー。コード未参照 |
 | `humanize-business-v1.0.md` | v1.1に置き換え済み |
+| `humanize-business-short-v1.0.md` | v1.1-shortに置き換え済み |
 
 **現行アーキテクチャ（2モード体制）:**
 - **通常モード**: v4.0プロンプトで1回変換（500字以下は短文版を自動選択）
-- **ダブルチェックモード**: v4.0変換 → repair-v1.0 修正ループの2段階（ヘビープラン限定）
+- **ダブルチェックモード**: v4.0変換 → Copyleaks AI検出スキャン → repair-v1.0 指摘箇所修正の3段階（ヘビープラン限定）
 
 ## コーディングルール
 

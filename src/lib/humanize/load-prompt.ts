@@ -29,15 +29,15 @@ const PROMPT_FILES: Record<Category, Record<TextLength, string>> = {
     long: "humanize-system-prompt-v4.0.md",
   },
   business: {
-    short: "humanize-business-short-v1.0.md",
+    short: "humanize-business-short-v1.1.md",
     long: "humanize-business-v1.1.md",
   },
 };
 
 // カテゴリごとのダブルチェック用リペアプロンプト
 const REPAIR_PROMPT_FILES: Record<Category, string> = {
-  report: "repair-prompt-v1.0.md",
-  business: "repair-business-v1.0.md",
+  report: "repair-prompt-v1.1.md",
+  business: "repair-business-v1.1.md",
 };
 
 // キャッシュ

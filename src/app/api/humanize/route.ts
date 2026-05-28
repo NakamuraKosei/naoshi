@@ -3,6 +3,7 @@ import { loadHumanizeSystemPrompt, loadRepairPrompt, detectTextLength, type Cate
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
 import { rateLimit } from "@/lib/rate-limit";
+import { scanForAiContent } from "@/lib/copyleaks/client";
 
 /**
  * /api/humanize
@@ -280,10 +281,21 @@ export async function POST(request: Request) {
       output = parsed.convertedText;
       modificationPoints = parsed.modificationPoints;
 
-      // --- 2段階目: ダブルチェック（リペア） ---
+      // --- 2段階目: ダブルチェック（Copyleaksスキャン → リペア） ---
       if (mode === "double_check" && output.length > 0) {
         try {
+          // 2-a. Copyleaks APIでAI検出スキャン
+          const detection = await scanForAiContent(output);
+          console.log(
+            `[humanize] copyleaks scan: ai=${Math.round(detection.aiScore * 100)}% human=${Math.round(detection.humanScore * 100)}% sections=${detection.aiSections.length}/${detection.totalSections}`,
+          );
+
+          // 2-b. repair-promptにCopyleaksの指摘結果を付与して修正
           const repairPrompt = await loadRepairPrompt(category);
+          const repairUserContent = detection.feedbackText.length > 0
+            ? `${output}\n\n---\n\n${detection.feedbackText}`
+            : output;
+
           const repairMessage = await client.messages.create({
             model: MODEL_ID,
             max_tokens: MAX_OUTPUT_TOKENS,
@@ -291,7 +303,7 @@ export async function POST(request: Request) {
             messages: [
               {
                 role: "user",
-                content: output,
+                content: repairUserContent,
               },
             ],
           });
@@ -307,14 +319,16 @@ export async function POST(request: Request) {
 
           if (repairOutput.length > 0) {
             output = repairOutput;
-            modificationPoints.push("ダブルチェック: 表現パターンの追加修正を実施");
+            modificationPoints.push(
+              `ダブルチェック: AI検出スコア${Math.round(detection.aiScore * 100)}%の箇所を中心に追加修正を実施`,
+            );
           }
         } catch (err) {
           console.error(
-            "[humanize] double_check repair error:",
+            "[humanize] double_check (copyleaks + repair) error:",
             err instanceof Error ? err.message : "unknown",
           );
-          // リペア失敗時は1段階目の結果をそのまま返す
+          // Copyleaksまたはリペア失敗時は1段階目の結果をそのまま返す
         }
       }
     }

@@ -452,7 +452,7 @@ export function AppClient({
       </div>
 
       {/* なおし中オーバーレイ */}
-      {isLoading && <ConvertingOverlay />}
+      {isLoading && <ConvertingOverlay doubleCheck={doubleCheck} />}
 
       {/* 完了オーバーレイ */}
       {showCompleteOverlay && (
@@ -622,7 +622,13 @@ function DoubleCheckToggle({
 }
 
 /** なおし中オーバーレイ */
-function ConvertingOverlay() {
+function ConvertingOverlay({ doubleCheck }: { doubleCheck: boolean }) {
+  // ダブルチェックは上位AI(Opus)で処理するため通常より時間がかかる。
+  // モードに応じて待ち時間の説明文を出し分ける。
+  const description = doubleCheck
+    ? "上位AIでじっくり書き換えています。2分ほどかかる場合があります。"
+    : "文章を変換しています。完了まで30秒ほどかかることがあります。";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.4)] backdrop-blur-sm">
       <div className="flex flex-col items-center gap-5 rounded-2xl bg-surface px-12 py-10 shadow-lg">
@@ -631,8 +637,8 @@ function ConvertingOverlay() {
           <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-border border-t-primary" />
         </div>
         <p className="text-lg font-bold text-text-primary">なおし中…</p>
-        <p className="text-sm text-text-muted">
-          文章を整えています。少々お待ちください。
+        <p className="max-w-[280px] text-center text-sm leading-relaxed text-text-muted">
+          {description}
         </p>
       </div>
     </div>

@@ -36,8 +36,10 @@ const MODEL_ID = "claude-sonnet-4-6";
 // ダブルチェックは Copyleaks+repair をやめ、上位モデルで1回変換する方式に変更。
 const DOUBLE_CHECK_MODEL_ID = "claude-opus-4-7";
 
-// 出力の最大トークン数（10,000字の書き換えにも対応できる余裕）
-const MAX_OUTPUT_TOKENS = 16000;
+// 出力の最大トークン数。
+// Opus 4.7 は新トークナイザで最大35%ほどトークンが増えるため、
+// 10,000字の和文を変換しても途中で切れないよう余裕を持たせる。
+const MAX_OUTPUT_TOKENS = 24000;
 
 // 文体の型
 type Style = "dearu" | "desumasu";

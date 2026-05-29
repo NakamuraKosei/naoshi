@@ -34,7 +34,7 @@ CLAUDE.md にプロンプト本文は含めない。詳細は `AGENTS.md` のプ
 
 - Next.js 16 App Router / TypeScript / Tailwind CSS
 - Supabase（Auth + Postgres）
-- Anthropic Claude Sonnet 4 API（`@anthropic-ai/sdk`）
+- Anthropic Claude Sonnet 4.6 API（`@anthropic-ai/sdk`）
 - Stripe Checkout / Customer Portal / Webhook
 - Vercel ホスティング
 

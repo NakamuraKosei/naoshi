@@ -616,7 +616,7 @@ function DoubleCheckToggle({
         />
       </span>
       <span>ダブルチェック</span>
-      <span className="text-xs text-text-muted">×2</span>
+      <span className="text-xs text-text-muted">×3</span>
     </label>
   );
 }

@@ -144,9 +144,16 @@ export function AppClient({
 
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setErrorMessage(
-          data.error ?? "うまく変換できませんでした。もう一度お試しください。",
-        );
+        // 504/タイムアウト系は文章が長すぎる可能性が高いので、専用の案内を出す
+        if (res.status === 504 || res.status === 408) {
+          setErrorMessage(
+            "変換に時間がかかり、途中で中断されました。文章が長い場合は短く分けてお試しください。",
+          );
+        } else {
+          setErrorMessage(
+            data.error ?? "うまく変換できませんでした。もう一度お試しください。",
+          );
+        }
         return;
       }
 
@@ -276,13 +283,21 @@ export function AppClient({
           </div>
         )}
 
-        {/* エラー表示 */}
+        {/* エラー表示（もう一度試すボタン付き） */}
         {errorMessage && (
           <div
             role="alert"
-            className="mb-4 rounded-md border border-[#EF4444] bg-[#FEF2F2] px-4 py-3 text-sm text-[#991B1B]"
+            className="mb-4 flex flex-col gap-2 rounded-md border border-[#EF4444] bg-[#FEF2F2] px-4 py-3 text-sm text-[#991B1B] sm:flex-row sm:items-center sm:justify-between"
           >
-            {errorMessage}
+            <span>{errorMessage}</span>
+            <button
+              type="button"
+              onClick={handleHumanize}
+              disabled={isLoading}
+              className="shrink-0 self-start rounded-full border border-[#EF4444] px-4 py-1.5 text-xs font-semibold text-[#991B1B] transition-colors hover:bg-[#FEE2E2] disabled:opacity-50 sm:self-auto"
+            >
+              もう一度試す
+            </button>
           </div>
         )}
 

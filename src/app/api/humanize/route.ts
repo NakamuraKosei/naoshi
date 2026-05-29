@@ -30,8 +30,8 @@ import { scanForAiContent } from "@/lib/copyleaks/client";
 // Node.js ランタイムを明示（fs/promisesとAnthropic SDKのため）
 export const runtime = "nodejs";
 
-// Claude モデルID（requirements記載の Sonnet 4）
-const MODEL_ID = "claude-sonnet-4-20250514";
+// Claude モデルID（Sonnet 4.6。指示追従の向上を狙い Sonnet 4 から更新）
+const MODEL_ID = "claude-sonnet-4-6";
 
 // 出力の最大トークン数（10,000字の書き換えにも対応できる余裕）
 const MAX_OUTPUT_TOKENS = 16000;

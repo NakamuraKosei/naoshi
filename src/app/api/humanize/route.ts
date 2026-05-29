@@ -29,6 +29,12 @@ import { rateLimit } from "@/lib/rate-limit";
 // Node.js ランタイムを明示（fs/promisesとAnthropic SDKのため）
 export const runtime = "nodejs";
 
+// 関数の最大実行時間（秒）。
+// ダブルチェックは Opus で最大10,000字を1回変換するため、
+// Vercelのデフォルト(60秒)では長文で時間切れになる恐れがある。
+// 上限を5分に広げて途中打ち切りによる変換失敗を防ぐ（実課金は使った分のみ）。
+export const maxDuration = 300;
+
 // Claude モデルID（Sonnet 4.6。指示追従の向上を狙い Sonnet 4 から更新）
 const MODEL_ID = "claude-sonnet-4-6";
 

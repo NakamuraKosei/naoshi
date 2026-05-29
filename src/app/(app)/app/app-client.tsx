@@ -159,9 +159,9 @@ export function AppClient({
         setCurrentUsed((prev) => prev + 1);
         setCurrentRemaining((prev) => Math.max(0, prev - 1));
       } else {
-        // ダブルチェック時は2倍消費
+        // ダブルチェック時は3倍消費
         const inputChars = input.trim().length;
-        const charCost = doubleCheck ? inputChars * 2 : inputChars;
+        const charCost = doubleCheck ? inputChars * 3 : inputChars;
         setCurrentUsed((prev) => prev + charCost);
         setCurrentRemaining((prev) => Math.max(0, prev - charCost));
       }

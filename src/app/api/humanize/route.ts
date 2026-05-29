@@ -1,9 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { loadHumanizeSystemPrompt, loadRepairPrompt, detectTextLength, type Category } from "@/lib/humanize/load-prompt";
+import { loadHumanizeSystemPrompt, detectTextLength, type Category } from "@/lib/humanize/load-prompt";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
 import { rateLimit } from "@/lib/rate-limit";
-import { scanForAiContent } from "@/lib/copyleaks/client";
 
 /**
  * /api/humanize
@@ -32,6 +31,10 @@ export const runtime = "nodejs";
 
 // Claude モデルID（Sonnet 4.6。指示追従の向上を狙い Sonnet 4 から更新）
 const MODEL_ID = "claude-sonnet-4-6";
+
+// ダブルチェック用の上位モデルID（Opus 4.7）。
+// ダブルチェックは Copyleaks+repair をやめ、上位モデルで1回変換する方式に変更。
+const DOUBLE_CHECK_MODEL_ID = "claude-opus-4-7";
 
 // 出力の最大トークン数（10,000字の書き換えにも対応できる余裕）
 const MAX_OUTPUT_TOKENS = 16000;
@@ -201,9 +204,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // ダブルチェック時は文字数2倍消費。残量が足りるか確認
+  // ダブルチェック時は文字数3倍消費。残量が足りるか確認
   if (mode === "double_check" && limit.limitType === "chars") {
-    const charCost = text.length * 2;
+    const charCost = text.length * 3;
     if (charCost > limit.remaining) {
       return Response.json(
         { error: "ダブルチェックに必要な文字数が残量を超えています。通常モードをお試しください。" },
@@ -255,9 +258,13 @@ export async function POST(request: Request) {
     } else {
       const client = new Anthropic({ apiKey: apiKey! });
 
-      // --- 1段階目: v4.0 変換 ---
+      // ダブルチェックは上位モデル(Opus)で変換する。通常モードは Sonnet。
+      const conversionModel =
+        mode === "double_check" ? DOUBLE_CHECK_MODEL_ID : MODEL_ID;
+
+      // --- v4.0 変換（通常=Sonnet / ダブルチェック=Opus、プロンプトは共通） ---
       const message = await client.messages.create({
-        model: MODEL_ID,
+        model: conversionModel,
         max_tokens: MAX_OUTPUT_TOKENS,
         system: systemPrompt,
         messages: [
@@ -281,55 +288,12 @@ export async function POST(request: Request) {
       output = parsed.convertedText;
       modificationPoints = parsed.modificationPoints;
 
-      // --- 2段階目: ダブルチェック（Copyleaksスキャン → リペア） ---
+      // ダブルチェックは上位モデル(Opus)で変換済みなので、追加のリペア段階は行わない。
+      // ※ Copyleaksスキャン + repair による方式はクレジット回復後に再検討する候補として保留。
       if (mode === "double_check" && output.length > 0) {
-        try {
-          // 2-a. Copyleaks APIでAI検出スキャン
-          const detection = await scanForAiContent(output);
-          console.log(
-            `[humanize] copyleaks scan: ai=${Math.round(detection.aiScore * 100)}% human=${Math.round(detection.humanScore * 100)}% sections=${detection.aiSections.length}/${detection.totalSections}`,
-          );
-
-          // 2-b. repair-promptにCopyleaksの指摘結果を付与して修正
-          const repairPrompt = await loadRepairPrompt(category);
-          const repairUserContent = detection.feedbackText.length > 0
-            ? `${output}\n\n---\n\n${detection.feedbackText}`
-            : output;
-
-          const repairMessage = await client.messages.create({
-            model: MODEL_ID,
-            max_tokens: MAX_OUTPUT_TOKENS,
-            system: repairPrompt,
-            messages: [
-              {
-                role: "user",
-                content: repairUserContent,
-              },
-            ],
-          });
-
-          const repairOutput = repairMessage.content
-            .filter(
-              (block): block is Extract<typeof block, { type: "text" }> =>
-                block.type === "text",
-            )
-            .map((block) => block.text)
-            .join("")
-            .trim();
-
-          if (repairOutput.length > 0) {
-            output = repairOutput;
-            modificationPoints.push(
-              `ダブルチェック: AI検出スコア${Math.round(detection.aiScore * 100)}%の箇所を中心に追加修正を実施`,
-            );
-          }
-        } catch (err) {
-          console.error(
-            "[humanize] double_check (copyleaks + repair) error:",
-            err instanceof Error ? err.message : "unknown",
-          );
-          // Copyleaksまたはリペア失敗時は1段階目の結果をそのまま返す
-        }
+        modificationPoints.push(
+          "ダブルチェック: 上位モデル(Opus 4.7)で、より自然で深い書き換えを実施",
+        );
       }
     }
 
@@ -344,8 +308,8 @@ export async function POST(request: Request) {
     const durationMs = Date.now() - startedAt;
 
     // --- 6. 使用実績を usage テーブルに記録 ---
-    // ダブルチェック時は文字数を2倍で記録（消費コスト反映）
-    const recordedChars = mode === "double_check" ? text.length * 2 : text.length;
+    // ダブルチェック時は文字数を3倍で記録（上位モデル利用の消費コスト反映）
+    const recordedChars = mode === "double_check" ? text.length * 3 : text.length;
     try {
       await recordUsage({
         inputChars: recordedChars,

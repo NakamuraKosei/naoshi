@@ -105,14 +105,14 @@ export default function Home() {
             <div className="mx-auto mt-10 max-w-2xl rounded-xl border border-primary/20 bg-surface px-6 py-5">
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-full bg-primary-light text-sm font-bold text-primary">
-                  2x
+                  3x
                 </span>
                 <div>
                   <h4 className="font-semibold text-text-primary">
                     ダブルチェックとは？
                   </h4>
                   <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-                    通常の変換後にもう1段階、表現の重複やパターンを崩す書き換えを行います。コピペチェッカー対策にも効果的です。文字数を2倍消費します。ヘビープラン限定の機能です。
+                    通常より高精度な上位AIモデルで、表現の重複やパターンをより深く崩して書き換えます。コピペチェッカー対策にも効果的です。文字数を3倍消費します。ヘビープラン限定の機能です。
                   </p>
                 </div>
               </div>

@@ -48,8 +48,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `humanize-business-short-v1.0.md` | v1.1-shortに置き換え済み |
 
 **現行アーキテクチャ（2モード体制）:**
-- **通常モード**: v4.0プロンプトで1回変換（500字以下は短文版を自動選択）
-- **ダブルチェックモード**: v4.0変換 → Copyleaks AI検出スキャン → repair-v1.0 指摘箇所修正の3段階（ヘビープラン限定）
+- **通常モード**: Sonnet 4.6 + v4.0プロンプトで1回変換（500字以下は短文版を自動選択）
+- **ダブルチェックモード**: 上位モデル Opus 4.7 + v4.0プロンプトで1回変換（ヘビープラン限定、文字数3倍消費）
+  - ※ 旧方式（v4.0変換 → Copyleaks AI検出スキャン → repair 修正の3段階）は、Copyleaksクレジット回復後に再検討する候補として保留。`repair-prompt-v1.1.md` / `repair-business-v1.1.md` と `src/lib/copyleaks/` は残置
 
 ## コーディングルール
 

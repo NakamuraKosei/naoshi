@@ -271,7 +271,10 @@ export async function POST(request: Request) {
         mode === "double_check" ? DOUBLE_CHECK_MODEL_ID : MODEL_ID;
 
       // --- v4.0 変換（通常=Sonnet / ダブルチェック=Opus、プロンプトは共通） ---
-      const message = await client.messages.create({
+      // ストリーミングで受信する。max_tokensが大きい場合、非ストリーミングだと
+      // SDKが「10分を超える恐れ」として送信前に例外を投げるため、stream必須。
+      // finalMessage() で全文を1つのMessageとして受け取り、以降は従来通り扱う。
+      const stream = client.messages.stream({
         model: conversionModel,
         max_tokens: MAX_OUTPUT_TOKENS,
         system: systemPrompt,
@@ -282,6 +285,7 @@ export async function POST(request: Request) {
           },
         ],
       });
+      const message = await stream.finalMessage();
 
       const rawOutput = message.content
         .filter(

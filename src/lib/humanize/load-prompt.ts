@@ -26,7 +26,7 @@ export const SHORT_TEXT_THRESHOLD = 500;
 const PROMPT_FILES: Record<Category, Record<TextLength, string>> = {
   report: {
     short: "humanize-system-prompt-short-v4.0.md",
-    long: "humanize-system-prompt-v4.0.md",
+    long: "humanize-system-prompt-v4.1.md",
   },
   business: {
     short: "humanize-business-short-v1.1.md",

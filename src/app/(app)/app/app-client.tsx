@@ -639,10 +639,20 @@ function DoubleCheckToggle({
 /** なおし中オーバーレイ */
 function ConvertingOverlay({ doubleCheck }: { doubleCheck: boolean }) {
   // ダブルチェックは上位AI(Opus)で処理するため通常より時間がかかる。
-  // モードに応じて待ち時間の説明文を出し分ける。
-  const description = doubleCheck
-    ? "上位AIでじっくり書き換えています。2分ほどかかる場合があります。"
-    : "文章を変換しています。完了まで30秒ほどかかることがあります。";
+  // モードに応じて待ち時間の説明文を出し分ける。文の区切りで改行して読みやすくする。
+  const description = doubleCheck ? (
+    <>
+      上位AIでじっくり書き換えています。
+      <br />
+      2分ほどかかる場合があります。
+    </>
+  ) : (
+    <>
+      文章を変換しています。
+      <br />
+      完了まで30秒ほどかかることがあります。
+    </>
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.4)] backdrop-blur-sm">

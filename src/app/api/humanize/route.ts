@@ -86,33 +86,46 @@ const IS_MOCK = process.env.MOCK_HUMANIZE === "1";
  * Claude APIの出力からJSON構造を抽出する。
  * JSONパースに失敗した場合はテキスト全体を converted_text として扱う（フォールバック）。
  */
+// 本文と修正ポイントを分ける区切り線。
+// 本文は記号「=」を使わない規則（プロンプト1.4）のため、本文中にこの行が
+// 現れることはなく、誤検知しない。
+const OUTPUT_DELIMITER = "===修正ポイント===";
+
+/** 本文を囲む ``` コードフェンスが付いていたら除去する（保険）。 */
+function stripCodeFence(text: string): string {
+  return text
+    .replace(/^```[a-zA-Z]*\s*\n?/, "")
+    .replace(/\n?```\s*$/, "")
+    .trim();
+}
+
+/**
+ * モデル出力（本文 + 区切り線 + 修正ポイント）を分解する。
+ * - 区切り線がある場合: 前を本文、後ろを修正ポイント（行ごとの箇条書き）として扱う。
+ * - 区切り線が無い/形式が崩れた場合: 全体を本文として扱う（フォールバック）。
+ * これによりJSONのような構文エラーで全体が失敗することがない。
+ */
 function parseStructuredOutput(raw: string): {
   convertedText: string;
   modificationPoints: string[];
 } {
-  try {
-    // ```json ... ``` で囲まれている場合を考慮
-    const jsonMatch = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const jsonStr = jsonMatch[1] ?? jsonMatch[0];
-      const parsed = JSON.parse(jsonStr) as {
-        converted_text?: string;
-        modification_points?: string[];
-      };
-      if (parsed.converted_text) {
-        return {
-          convertedText: parsed.converted_text.trim(),
-          modificationPoints: Array.isArray(parsed.modification_points)
-            ? parsed.modification_points
-            : [],
-        };
-      }
-    }
-  } catch {
-    // JSONパース失敗 → フォールバック
+  const cleaned = raw.trim();
+  const idx = cleaned.indexOf(OUTPUT_DELIMITER);
+
+  if (idx === -1) {
+    // 区切り線なし → 全体を本文として扱う
+    return { convertedText: stripCodeFence(cleaned), modificationPoints: [] };
   }
-  // フォールバック: テキスト全体を変換結果として扱い、修正ポイントは空
-  return { convertedText: raw, modificationPoints: [] };
+
+  const body = stripCodeFence(cleaned.slice(0, idx).trim());
+  const pointsBlock = cleaned.slice(idx + OUTPUT_DELIMITER.length);
+  // 各行の先頭の箇条書き記号（・- * •）と空白を除去して配列化
+  const modificationPoints = pointsBlock
+    .split("\n")
+    .map((line) => line.replace(/^[\s・\-*•]+/, "").trim())
+    .filter((line) => line.length > 0);
+
+  return { convertedText: body, modificationPoints };
 }
 
 export async function POST(request: Request) {
@@ -236,8 +249,8 @@ export async function POST(request: Request) {
         mode === "double_check"
           ? "今回の書き換えで行った修正の要約をちょうど3個、箇条書きで記述する。"
           : "今回の書き換えで行った修正の要約を2〜3個、箇条書きで記述する。";
-      // 文体指定を末尾に1行追加
-      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}\n\n---\n\n## 出力フォーマット\n\n以下のJSON形式で出力してください。JSONのみを出力し、他のテキストは含めないでください。\n\n\`\`\`json\n{\n  "converted_text": "変換後の本文をここに記述",\n  "modification_points": [\n    "修正ポイント1",\n    "修正ポイント2"\n  ]\n}\n\`\`\`\n\n- converted_text: 変換後の本文（従来通りのルールで書き換えた全文）\n- modification_points: ${pointsInstruction}具体的にどの表現をどう変えたかがわかるように書くこと。`;
+      // 文体指定と出力フォーマット（区切り線方式）を末尾に追加
+      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}\n\n---\n\n## 出力フォーマット\n\n最初に変換後の本文だけを書く。本文をすべて書き終えたら、次の行に区切り線「${OUTPUT_DELIMITER}」を単独の行で出力し、その後に修正ポイントを1行に1個ずつ「・」で始めて箇条書きする。\n\n形式の例:\n（変換後の本文をそのまま記述）\n${OUTPUT_DELIMITER}\n・修正ポイント1\n・修正ポイント2\n\n厳守事項:\n- 本文部分には区切り線「${OUTPUT_DELIMITER}」やJSON・コードブロック記号（\`\`\`）を絶対に含めない。\n- 「本文:」などの前置きや見出しは付けず、いきなり本文から書き始める。\n- 修正ポイント: ${pointsInstruction}具体的にどの表現をどう変えたかがわかるように書く。`;
     } catch (err) {
       // 本文はログに残さない
       console.error(

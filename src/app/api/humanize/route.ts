@@ -231,8 +231,13 @@ export async function POST(request: Request) {
       // カテゴリ × 文字数で短文/長文を自動切り替え
       const textLength = detectTextLength(text.length);
       const basePrompt = await loadHumanizeSystemPrompt(textLength, category);
+      // 修正ポイントの個数指定（通常=2〜3個 / ダブルチェック=ちょうど3個）
+      const pointsInstruction =
+        mode === "double_check"
+          ? "今回の書き換えで行った修正の要約をちょうど3個、箇条書きで記述する。"
+          : "今回の書き換えで行った修正の要約を2〜3個、箇条書きで記述する。";
       // 文体指定を末尾に1行追加
-      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}\n\n---\n\n## 出力フォーマット\n\n以下のJSON形式で出力してください。JSONのみを出力し、他のテキストは含めないでください。\n\n\`\`\`json\n{\n  "converted_text": "変換後の本文をここに記述",\n  "modification_points": [\n    "修正ポイント1",\n    "修正ポイント2",\n    "修正ポイント3"\n  ]\n}\n\`\`\`\n\n- converted_text: 変換後の本文（従来通りのルールで書き換えた全文）\n- modification_points: 今回の書き換えで行った修正の要約を3〜5個、箇条書きで記述。具体的にどの表現をどう変えたかがわかるように書くこと。`;
+      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}\n\n---\n\n## 出力フォーマット\n\n以下のJSON形式で出力してください。JSONのみを出力し、他のテキストは含めないでください。\n\n\`\`\`json\n{\n  "converted_text": "変換後の本文をここに記述",\n  "modification_points": [\n    "修正ポイント1",\n    "修正ポイント2"\n  ]\n}\n\`\`\`\n\n- converted_text: 変換後の本文（従来通りのルールで書き換えた全文）\n- modification_points: ${pointsInstruction}具体的にどの表現をどう変えたかがわかるように書くこと。`;
     } catch (err) {
       // 本文はログに残さない
       console.error(
@@ -298,15 +303,12 @@ export async function POST(request: Request) {
 
       const parsed = parseStructuredOutput(rawOutput);
       output = parsed.convertedText;
-      modificationPoints = parsed.modificationPoints;
+      // 修正ポイントは最大3個に制限（通常=2〜3個 / ダブルチェック=3個）。
+      // モデルが多めに返した場合のガードレール。
+      modificationPoints = parsed.modificationPoints.slice(0, 3);
 
       // ダブルチェックは上位モデル(Opus)で変換済みなので、追加のリペア段階は行わない。
       // ※ Copyleaksスキャン + repair による方式はクレジット回復後に再検討する候補として保留。
-      if (mode === "double_check" && output.length > 0) {
-        modificationPoints.push(
-          "ダブルチェック: 上位モデル(Opus 4.7)で、より自然で深い書き換えを実施",
-        );
-      }
     }
 
     if (output.length === 0) {

@@ -498,11 +498,11 @@ function LimitExceededModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)] px-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[500px] rounded-xl bg-surface p-10 shadow-lg"
+        className="w-full max-w-[500px] rounded-xl bg-surface p-6 shadow-lg sm:p-10"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-2xl font-bold text-text-primary">
@@ -651,8 +651,8 @@ function ConvertingOverlay({ doubleCheck }: { doubleCheck: boolean }) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.4)] backdrop-blur-sm">
-      <div className="flex flex-col items-center gap-5 rounded-2xl bg-surface px-12 py-10 shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.4)] px-4 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-5 rounded-2xl bg-surface px-8 py-10 shadow-lg sm:px-12">
         {/* 回転アニメーション */}
         <div className="relative h-12 w-12">
           <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-border border-t-primary" />
@@ -670,11 +670,11 @@ function ConvertingOverlay({ doubleCheck }: { doubleCheck: boolean }) {
 function CompleteOverlay({ onClose }: { onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.4)] backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.4)] px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="flex flex-col items-center gap-4 rounded-2xl bg-surface px-12 py-10 shadow-lg"
+        className="flex flex-col items-center gap-4 rounded-2xl bg-surface px-8 py-10 shadow-lg sm:px-12"
         onClick={(e) => e.stopPropagation()}
       >
         {/* チェックマーク */}

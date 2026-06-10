@@ -91,6 +91,23 @@ const IS_MOCK = process.env.MOCK_HUMANIZE === "1";
 // 現れることはなく、誤検知しない。
 const OUTPUT_DELIMITER = "===修正ポイント===";
 
+/**
+ * プロンプト1.4で禁止している記号の混入をコード側で除去する保険。
+ * モデルは概ね守るが、まれに混入するため機械的に掃除する。
+ * - Markdown記法（見出し・太字）を除去
+ * - 装飾記号（■◆●▼★☆※→⇒）を削除
+ * - ダッシュ（——等）は挿入用法が多いため読点に置換し、連続読点を正規化
+ */
+function sanitizeForbiddenSymbols(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, "") // Markdown見出し
+    .replace(/\*\*([^*]+)\*\*/g, "$1") // Markdown太字
+    .replace(/[■◆●▼★☆※→⇒]/g, "") // 装飾記号
+    .replace(/[—―–]+/g, "、") // ダッシュ類は読点へ
+    .replace(/、{2,}/g, "、") // 連続読点を1つに
+    .replace(/、([。、])/g, "$1"); // 「、。」等の崩れを正規化
+}
+
 /** 本文を囲む ``` コードフェンスが付いていたら除去する（保険）。 */
 function stripCodeFence(text: string): string {
   return text
@@ -306,34 +323,68 @@ export async function POST(request: Request) {
       const conversionModel =
         mode === "double_check" ? DOUBLE_CHECK_MODEL_ID : MODEL_ID;
 
-      // --- v4.0 変換（通常=Sonnet / ダブルチェック=Opus、プロンプトは共通） ---
+      // 変換を1回実行する（リトライ時は追加指示を末尾に付与）。
       // ストリーミングで受信する。max_tokensが大きい場合、非ストリーミングだと
       // SDKが「10分を超える恐れ」として送信前に例外を投げるため、stream必須。
       // finalMessage() で全文を1つのMessageとして受け取り、以降は従来通り扱う。
-      const stream = client.messages.stream({
-        model: conversionModel,
-        max_tokens: MAX_OUTPUT_TOKENS,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: text,
-          },
-        ],
-      });
-      const message = await stream.finalMessage();
+      async function runConversion(extraInstruction?: string) {
+        const stream = client.messages.stream({
+          model: conversionModel,
+          max_tokens: MAX_OUTPUT_TOKENS,
+          system: extraInstruction
+            ? `${systemPrompt}\n\n---\n\n${extraInstruction}`
+            : systemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: text,
+            },
+          ],
+        });
+        const message = await stream.finalMessage();
 
-      const rawOutput = message.content
-        .filter(
-          (block): block is Extract<typeof block, { type: "text" }> =>
-            block.type === "text",
-        )
-        .map((block) => block.text)
-        .join("")
-        .trim();
+        const rawOutput = message.content
+          .filter(
+            (block): block is Extract<typeof block, { type: "text" }> =>
+              block.type === "text",
+          )
+          .map((block) => block.text)
+          .join("")
+          .trim();
 
-      const parsed = parseStructuredOutput(rawOutput);
-      output = parsed.convertedText;
+        return parseStructuredOutput(rawOutput);
+      }
+
+      let parsed = await runConversion();
+
+      // --- 文字数比ガード ---
+      // プロンプトは「原文の90%以上」を指示するが、LLMは自分の出力字数を
+      // 正確に数えられないため、コード側で検証して短すぎる場合のみ1回リトライする。
+      // 条件: 長文(500字超・長文版プロンプトの下限90%が対象) かつ
+      //       タイムアウト余裕がある場合のみ（Vercel Hobbyの60秒制限を考慮）
+      const ratio = parsed.convertedText.length / text.length;
+      const elapsedMs = Date.now() - startedAt;
+      if (
+        parsed.convertedText.length > 0 &&
+        text.length > 500 &&
+        ratio < 0.9 &&
+        elapsedMs < 25_000
+      ) {
+        console.warn(
+          `[humanize] output too short (${Math.round(ratio * 100)}%), retrying once`,
+        );
+        const retried = await runConversion(
+          `## 再変換指示（最優先）\n直前の変換結果は原文の約${Math.round(ratio * 100)}%の分量しかなく、短すぎて要件違反だった。今回は内容を一切削らず、原文の90〜120%の分量で全文を書き直すこと。`,
+        );
+        // 改善した場合のみ採用（悪化したら元の結果を使う）
+        if (retried.convertedText.length > parsed.convertedText.length) {
+          parsed = retried;
+        }
+      }
+
+      // --- 禁止記号ガード ---
+      // プロンプト1.4で禁止している記号の混入をコード側で除去する保険
+      output = sanitizeForbiddenSymbols(parsed.convertedText);
       // 修正ポイントは最大3個に制限（通常=2〜3個 / ダブルチェック=3個）。
       // モデルが多めに返した場合のガードレール。
       modificationPoints = parsed.modificationPoints.slice(0, 3);

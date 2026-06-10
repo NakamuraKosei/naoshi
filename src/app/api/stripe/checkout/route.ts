@@ -67,6 +67,23 @@ export async function POST(request: Request) {
     }
 
     const stripe = getStripe();
+
+    // Webhook反映ラグ対策: profiles.plan がまだ free でも、Stripe側に
+    // アクティブなサブスクが既に存在すれば二重加入になるため拒否する
+    if (profile?.stripe_customer_id) {
+      const existing = await stripe.subscriptions.list({
+        customer: profile.stripe_customer_id,
+        status: "active",
+        limit: 1,
+      });
+      if (existing.data.length > 0) {
+        return NextResponse.json(
+          { error: "既にプランに加入中です。マイページからプラン変更を行ってください。" },
+          { status: 400 },
+        );
+      }
+    }
+
     const origin =
       process.env.NEXT_PUBLIC_SITE_URL ??
       new URL(request.url).origin;

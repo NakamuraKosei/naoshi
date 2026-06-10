@@ -41,6 +41,23 @@ export async function POST(request: Request) {
 
   const admin = createServiceClient();
 
+  // サブスクからユーザーIDを特定する。
+  // 基本は自前Checkoutで付与した metadata.user_id を使うが、
+  // Stripeダッシュボードから手動作成されたサブスク等には metadata が無い。
+  // その場合は stripe_customer_id から profiles を逆引きするフォールバック。
+  async function resolveUserId(sub: Stripe.Subscription): Promise<string | null> {
+    if (sub.metadata?.user_id) return sub.metadata.user_id;
+    const customerId =
+      typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
+    if (!customerId) return null;
+    const { data } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("stripe_customer_id", customerId)
+      .maybeSingle();
+    return data?.id ?? null;
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
@@ -71,7 +88,7 @@ export async function POST(request: Request) {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.user_id;
+        const userId = await resolveUserId(sub);
         // 価格 ID からプラン名を逆引き
         const priceId = sub.items.data[0]?.price.id ?? "";
         const plan = getPlanByPriceId(priceId) ?? "free";
@@ -130,7 +147,9 @@ export async function POST(request: Request) {
 
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.user_id;
+        // metadata が無い場合も customer_id から逆引きして、
+        // 解約時に profiles.plan が有料のまま残るのを防ぐ
+        const userId = await resolveUserId(sub);
 
         await admin
           .from("subscriptions")

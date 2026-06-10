@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // 変換プロンプト（prompts/*.md）をサーバー関数のバンドルに必ず含める。
+  // load-prompt.ts が実行時に動的パスで readFile するため、
+  // 自動のファイルトレースから漏れるリスクを明示指定で防ぐ
+  // （漏れると該当カテゴリの変換が本番でのみ500になる）。
+  outputFileTracingIncludes: {
+    "/api/humanize": ["./prompts/**/*"],
+  },
   // セキュリティヘッダー（OWASP推奨ベース）
   headers: async () => [
     {

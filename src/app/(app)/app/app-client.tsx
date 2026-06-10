@@ -45,7 +45,6 @@ export function AppClient({
   limitType,
   periodLimit,
   resetCycle,
-  used: initialUsed,
   remaining: initialRemaining,
   planLabel,
   canDoubleCheck,
@@ -75,8 +74,7 @@ export function AppClient({
     setTimeout(() => setShowSuccess(false), 5000);
   }
 
-  // 使用量をクライアント側でトラッキング（変換成功後に即時反映するため）
-  const [currentUsed, setCurrentUsed] = useState(initialUsed);
+  // 残量をクライアント側でトラッキング（変換成功後に即時反映するため）
   const [currentRemaining, setCurrentRemaining] = useState(initialRemaining);
 
   // LPから引き継いだテキストがあれば入力欄にセット
@@ -161,15 +159,13 @@ export function AppClient({
       setOutput(data.output);
       setModificationPoints(data.modificationPoints ?? []);
 
-      // 使用量をクライアント側で即時更新
+      // 残量をクライアント側で即時更新
       if (limitType === "count") {
-        setCurrentUsed((prev) => prev + 1);
         setCurrentRemaining((prev) => Math.max(0, prev - 1));
       } else {
         // ダブルチェック時は3倍消費
         const inputChars = input.trim().length;
         const charCost = doubleCheck ? inputChars * 3 : inputChars;
-        setCurrentUsed((prev) => prev + charCost);
         setCurrentRemaining((prev) => Math.max(0, prev - charCost));
       }
 

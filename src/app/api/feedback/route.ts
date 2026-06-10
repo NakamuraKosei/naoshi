@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * /api/feedback
@@ -72,6 +73,16 @@ export async function POST(request: Request) {
     return Response.json(
       { error: "ログインが必要です。" },
       { status: 401 },
+    );
+  }
+
+  // --- 2.5 レートリミット（ユーザー単位、1分あたり3件） ---
+  // 連打による Resend のメール送信浪費・DB スパムを防ぐ
+  const rl = rateLimit(`feedback:user:${user.id}`, 3, 60_000);
+  if (!rl.allowed) {
+    return Response.json(
+      { error: "送信が多すぎます。しばらくお待ちください。" },
+      { status: 429 },
     );
   }
 

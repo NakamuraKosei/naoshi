@@ -4,27 +4,24 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 // ビルド時評価を避けるため動的実行
 export const dynamic = "force-dynamic";
 
-// Supabase Auth のエラーをユーザー向けの日本語メッセージに変換
-function getFriendlyAuthError(message: string): string {
-  const lower = message.toLowerCase();
-  if (lower.includes("rate limit") || lower.includes("too many")) {
-    return "メールの送信回数が上限に達しました。しばらく時間をおいてから再度お試しください。";
-  }
-  if (lower.includes("invalid email")) {
-    return "メールアドレスの形式が正しくありません。";
-  }
-  if (lower.includes("not allowed") || lower.includes("not authorized")) {
-    return "このメールアドレスではご利用いただけません。";
-  }
-  // その他の不明なエラー
-  return "メールの送信に失敗しました。時間をおいて再度お試しください。";
-}
-
 export async function POST(request: Request) {
+  // レートリミット（IP単位、1分あたり3リクエスト）
+  // 任意のメールアドレスへ送信できるため、メール爆撃の踏み台化を防ぐ
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
+  const rl = rateLimit(`magic-link:${ip}`, 3, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "リクエストが多すぎます。しばらくお待ちください。" },
+      { status: 429 },
+    );
+  }
+
   try {
     // リクエストボディから email を取得
     const body = (await request.json()) as { email?: string };

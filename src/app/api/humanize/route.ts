@@ -358,23 +358,25 @@ export async function POST(request: Request) {
       let parsed = await runConversion();
 
       // --- 文字数比ガード ---
-      // プロンプトは「原文の90%以上」を指示するが、LLMは自分の出力字数を
+      // プロンプトは出力字数の下限を指示するが、LLMは自分の出力字数を
       // 正確に数えられないため、コード側で検証して短すぎる場合のみ1回リトライする。
-      // 条件: 長文(500字超・長文版プロンプトの下限90%が対象) かつ
-      //       タイムアウト余裕がある場合のみ（Vercel Hobbyの60秒制限を考慮）
+      // 下限はカテゴリのプロンプトに合わせる（レポート長文=90% / ビジネス長文=80%）。
+      // 条件: 長文(500字超) かつ タイムアウト余裕がある場合のみ
+      //       （Vercel Hobbyの60秒制限を考慮）
+      const minRatio = category === "business" ? 0.8 : 0.9;
       const ratio = parsed.convertedText.length / text.length;
       const elapsedMs = Date.now() - startedAt;
       if (
         parsed.convertedText.length > 0 &&
         text.length > 500 &&
-        ratio < 0.9 &&
+        ratio < minRatio &&
         elapsedMs < 25_000
       ) {
         console.warn(
           `[humanize] output too short (${Math.round(ratio * 100)}%), retrying once`,
         );
         const retried = await runConversion(
-          `## 再変換指示（最優先）\n直前の変換結果は原文の約${Math.round(ratio * 100)}%の分量しかなく、短すぎて要件違反だった。今回は内容を一切削らず、原文の90〜120%の分量で全文を書き直すこと。`,
+          `## 再変換指示（最優先）\n直前の変換結果は原文の約${Math.round(ratio * 100)}%の分量しかなく、短すぎて要件違反だった。今回は内容を一切削らず、原文の${Math.round(minRatio * 100)}〜120%の分量で全文を書き直すこと。`,
         );
         // 改善した場合のみ採用（悪化したら元の結果を使う）
         if (retried.convertedText.length > parsed.convertedText.length) {

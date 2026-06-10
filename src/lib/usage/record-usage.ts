@@ -11,9 +11,12 @@
 //     durationMs: Date.now() - startedAt,
 //   });
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 export type RecordUsageInput = {
+  // DB アクセスに使うクライアント（Bearer 認証用。省略時は Cookie クライアント）
+  client?: SupabaseClient;
   // ユーザー ID（省略時はセッションから取得）
   userId?: string;
   // 入力文字数
@@ -33,7 +36,7 @@ export type RecordUsageInput = {
 // usage テーブルに 1 行 INSERT する
 // 入力テキスト本文は保存しない（プライバシー保護、requirements.md 4.2）
 export async function recordUsage(input: RecordUsageInput): Promise<void> {
-  const supabase = await createClient();
+  const supabase = input.client ?? (await createClient());
 
   let userId = input.userId;
   if (!userId) {

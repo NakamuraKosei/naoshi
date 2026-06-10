@@ -3,6 +3,7 @@ import { loadHumanizeSystemPrompt, detectTextLength, type Category } from "@/lib
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
 import { rateLimit } from "@/lib/rate-limit";
+import { createClientFromRequest } from "@/lib/supabase/bearer";
 
 /**
  * /api/humanize
@@ -198,7 +199,9 @@ export async function POST(request: Request) {
   }
 
   // --- 3.1 認証 & 利用制限チェック（プラン別の回数/文字数） ---
-  const limit = await checkLimit();
+  // Cookie（Web版）/ Bearer（モバイルアプリ）のどちらでも認証できる
+  const auth = await createClientFromRequest(request);
+  const limit = await checkLimit(auth.userId ?? undefined, auth.supabase);
   if (!limit.allowed) {
     if (limit.reason === "unauthenticated") {
       return Response.json(
@@ -410,6 +413,8 @@ export async function POST(request: Request) {
     const recordedChars = mode === "double_check" ? text.length * 3 : text.length;
     try {
       await recordUsage({
+        client: auth.supabase,
+        userId: limit.userId,
         inputChars: recordedChars,
         outputChars: output.length,
         style: body.style,

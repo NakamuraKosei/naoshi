@@ -7,6 +7,7 @@
 //   - ヘビー: 月間文字数制限（150,000字/月）
 // ■ リセット: 無料・ヘビー=毎月1日 JST 0:00、ライト=毎週月曜 JST 0:00
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getPlanRule, getPeriodStart, type PlanKey, type LimitType, type ResetCycle } from "@/lib/usage/plans";
 
@@ -37,10 +38,13 @@ export type LimitCheckResult = {
 };
 
 // userId を省略すると現在セッションから取得する
+// client を渡すとそのクライアントで DB アクセスする
+// （モバイルアプリの Bearer 認証用。省略時は従来どおり Cookie クライアント）
 export async function checkLimit(
   userId?: string,
+  client?: SupabaseClient,
 ): Promise<LimitCheckResult> {
-  const supabase = await createClient();
+  const supabase = client ?? (await createClient());
 
   // userId 未指定ならセッションから取得
   let uid = userId;

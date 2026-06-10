@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClientFromRequest } from "@/lib/supabase/bearer";
 import { Resend } from "resend";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -64,10 +64,8 @@ export async function POST(request: Request) {
   }
 
   // --- 2. 認証チェック ---
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Cookie（Web版）/ Bearer（モバイルアプリ）のどちらでも認証できる
+  const { supabase, user } = await createClientFromRequest(request);
 
   if (!user) {
     return Response.json(

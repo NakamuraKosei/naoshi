@@ -102,12 +102,25 @@ export async function POST(request: Request) {
           // アクティブ系ステータスなら profiles のプランも更新
           const isActive =
             sub.status === "active" || sub.status === "trialing";
+          const newPlan = isActive ? plan : "free";
           const now = new Date().toISOString();
+
+          // plan_changed_at はプランが実際に変わった時だけ更新する。
+          // subscription.updated は毎周期の請求やカード変更でも発火するため、
+          // 無条件に更新すると check-limit の使用量カウントが請求のたびに
+          // リセットされてしまう（期間上限が実質無効化される）。
+          const { data: currentProfile } = await admin
+            .from("profiles")
+            .select("plan")
+            .eq("id", userId)
+            .maybeSingle();
+          const planChanged = currentProfile?.plan !== newPlan;
+
           await admin
             .from("profiles")
             .update({
-              plan: isActive ? plan : "free",
-              plan_changed_at: now,
+              plan: newPlan,
+              ...(planChanged ? { plan_changed_at: now } : {}),
               updated_at: now,
             })
             .eq("id", userId);
@@ -134,28 +147,25 @@ export async function POST(request: Request) {
             .neq("stripe_subscription_id", sub.id)
             .limit(1);
 
+          // こちらも plan_changed_at はプランが実際に変わる時だけ更新（C1と同じ理由）
           const now = new Date().toISOString();
-          if (activeSubs && activeSubs.length > 0) {
-            // 他のアクティブなサブスクがあればそのプランを維持
-            await admin
-              .from("profiles")
-              .update({
-                plan: activeSubs[0].plan,
-                plan_changed_at: now,
-                updated_at: now,
-              })
-              .eq("id", userId);
-          } else {
-            // アクティブなサブスクがなければ無料に戻す
-            await admin
-              .from("profiles")
-              .update({
-                plan: "free",
-                plan_changed_at: now,
-                updated_at: now,
-              })
-              .eq("id", userId);
-          }
+          const nextPlan =
+            activeSubs && activeSubs.length > 0 ? activeSubs[0].plan : "free";
+          const { data: currentProfile } = await admin
+            .from("profiles")
+            .select("plan")
+            .eq("id", userId)
+            .maybeSingle();
+          const planChanged = currentProfile?.plan !== nextPlan;
+
+          await admin
+            .from("profiles")
+            .update({
+              plan: nextPlan,
+              ...(planChanged ? { plan_changed_at: now } : {}),
+              updated_at: now,
+            })
+            .eq("id", userId);
         }
         break;
       }

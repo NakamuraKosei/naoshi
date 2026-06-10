@@ -195,8 +195,11 @@ export async function POST(request: Request) {
     );
   }
   // --- 3.2 ユーザーIDベースのレートリミット（IP偽装対策） ---
+  // 変換は1回数十秒かかるため3回/分で実用上は十分。
+  // 使用量の記録は変換完了後のため、並行リクエストで上限チェックを
+  // すり抜けられる(TOCTOU)問題があり、その緩和策も兼ねて絞っている。
   if (limit.userId) {
-    const userRl = rateLimit(`humanize:user:${limit.userId}`, 10, 60_000);
+    const userRl = rateLimit(`humanize:user:${limit.userId}`, 3, 60_000);
     if (!userRl.allowed) {
       return Response.json(
         { error: "リクエストが多すぎます。しばらくお待ちください。" },
@@ -225,12 +228,20 @@ export async function POST(request: Request) {
     );
   }
 
-  // ダブルチェック時は文字数3倍消費。残量が足りるか確認
-  if (mode === "double_check" && limit.limitType === "chars") {
-    const charCost = text.length * 3;
+  // 文字数プランは今回の消費量が残量に収まるか事前確認する
+  // （通常=入力字数×1、ダブルチェック=×3。従来はダブルチェックのみ
+  //   チェックしており、通常モードは残量1字でも上限字数まで通せた）
+  if (limit.limitType === "chars") {
+    const charCost = mode === "double_check" ? text.length * 3 : text.length;
     if (charCost > limit.remaining) {
       return Response.json(
-        { error: "ダブルチェックに必要な文字数が残量を超えています。通常モードをお試しください。" },
+        {
+          error:
+            mode === "double_check"
+              ? "ダブルチェックに必要な文字数が残量を超えています。通常モードをお試しください。"
+              : `今期間の残り文字数（${limit.remaining.toLocaleString()}字）を超えています。文章を短くするか、リセットをお待ちください。`,
+          limit,
+        },
         { status: 403 },
       );
     }

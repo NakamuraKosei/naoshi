@@ -96,6 +96,20 @@ export function AppClient({
   const isOverLimit = charCount > maxChars;
   const isQuotaExhausted = currentRemaining <= 0;
 
+  // 文字数に応じて入出力エリアの文字サイズを段階的に下げる（Google翻訳と同様の発想）
+  // 〜500字: 18px / 501〜2,000字: 16px / 2,001字〜: 15px
+  // 入力と出力で大きさが揃うよう、長い方の文字数を基準にする
+  const editorFontStyle = useMemo((): React.CSSProperties => {
+    const length = Math.max(input.length, output.length);
+    const size = length > 2000 ? 15 : length > 500 ? 16 : 18;
+    const lineHeight = length > 2000 ? 1.7 : length > 500 ? 1.75 : 1.8;
+    return {
+      fontSize: `${size}px`,
+      lineHeight,
+      transition: "font-size 0.2s ease",
+    };
+  }, [input.length, output.length]);
+
   const isSubmitDisabled = useMemo(
     () => isLoading || input.trim().length === 0 || isOverLimit || isQuotaExhausted,
     [isLoading, input, isOverLimit, isQuotaExhausted],
@@ -312,6 +326,7 @@ export function AppClient({
               onChange={(e) => setInput(e.target.value)}
               placeholder="ここにAIが書いたレポートを貼り付けてください。"
               className="flex-1 min-h-[420px]"
+              style={editorFontStyle}
               disabled={isLoading}
               aria-label="元の文章の入力"
             />
@@ -341,6 +356,7 @@ export function AppClient({
                 readOnly
                 placeholder="ここに変換結果が表示されます。"
                 className="flex-1 min-h-[420px] bg-[#FAFBFD]"
+                style={editorFontStyle}
                 aria-label="なおした文章"
               />
             )}

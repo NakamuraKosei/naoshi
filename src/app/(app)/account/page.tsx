@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPlanRule, type PlanKey } from "@/lib/usage/plans";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { PortalButton } from "./portal-button";
+import { DeleteAccountButton } from "./delete-account-button";
 
 export const dynamic = "force-dynamic";
 
@@ -155,6 +156,19 @@ export default async function AccountPage() {
               </div>
             </div>
           </CardContent>
+        </Card>
+
+        {/* アカウント削除（App Store ガイドライン 5.1.1(v) 対応の退会導線） */}
+        <Card className="mt-8 border-[#FECACA]">
+          <CardHeader>
+            <CardTitle>アカウントの削除</CardTitle>
+            <CardDescription>
+              ご契約中のプランは即時解約され、すべてのデータが完全に削除されます。この操作は取り消せません。
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <DeleteAccountButton />
+          </CardFooter>
         </Card>
       </main>
     </div>

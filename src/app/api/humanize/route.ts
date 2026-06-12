@@ -232,7 +232,8 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error: `このプランでは最大${limit.maxChars}字までです。プランを変更しますか？`,
-        limit,
+        // userId は内部用なのでレスポンスから除外する
+        limit: { ...limit, userId: undefined },
       },
       { status: 400 },
     );
@@ -260,7 +261,8 @@ export async function POST(request: Request) {
             mode === "double_check"
               ? "ダブルチェックに必要な文字数が残量を超えています。通常モードをお試しください。"
               : `今期間の残り文字数（${limit.remaining.toLocaleString()}字）を超えています。文章を短くするか、リセットをお待ちください。`,
-          limit,
+          // userId は内部用なのでレスポンスから除外する
+          limit: { ...limit, userId: undefined },
         },
         { status: 403 },
       );

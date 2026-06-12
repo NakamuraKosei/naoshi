@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { rateLimit } from "@/lib/rate-limit";
 import { createClientFromRequest } from "@/lib/supabase/bearer";
+import { isAllowedOrigin } from "@/lib/origin-guard";
 
 /**
  * /api/pricing-email
@@ -45,6 +46,11 @@ const PRICING_TEXT = `■ 無料プラン  ¥0
   ・ダブルチェック機能つき`;
 
 export async function POST(request: Request) {
+  // --- 0. CSRF対策（クロスサイトPOSTの拒否） ---
+  if (!isAllowedOrigin(request)) {
+    return Response.json({ error: "不正なリクエストです。" }, { status: 403 });
+  }
+
   // --- 1. 認証（Cookie / Bearer 両対応） ---
   const { user } = await createClientFromRequest(request);
   if (!user?.email) {

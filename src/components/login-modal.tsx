@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
+import { createClient } from "@/lib/supabase/client";
 
 type LoginModalProps = {
   isOpen: boolean;
@@ -17,6 +18,7 @@ type LoginModalProps = {
  */
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -26,6 +28,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   if (!isOpen) return null;
 
+  // 1段階目: コードをメール送信
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) {
@@ -53,8 +56,34 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     }
   }
 
+  // 2段階目: コードを検証してログイン（成功すると親がonAuthStateChangeで検知して遷移）
+  async function handleVerify(e: React.FormEvent) {
+    e.preventDefault();
+    setErrorMessage("");
+    setIsLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: code.trim(),
+        type: "email",
+      });
+      if (error) {
+        setErrorMessage("コードが正しくないか、有効期限が切れています。");
+        return;
+      }
+      // 成功: モーダルを閉じる（HeroConverter側のonAuthStateChangeが変換へ進める）
+      handleClose();
+    } catch {
+      setErrorMessage("通信エラーが発生しました。");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   function handleClose() {
     setEmail("");
+    setCode("");
     setIsSent(false);
     setErrorMessage("");
     onClose();
@@ -92,19 +121,45 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         {isSent ? (
           <div className="mt-6">
             <h2 className="text-xl font-bold text-text-primary">
-              メールを確認してください
+              確認コードを入力
             </h2>
             <p className="mt-3 text-sm leading-[1.75] text-text-secondary">
               <span className="font-medium text-text-primary">{email}</span>{" "}
-              にログイン用のリンクを送りました。
-              リンクをクリックすると自動的に変換が始まります。
+              に届いた6桁のコードを入力してください。入力したテキストはそのまま保持されています。
             </p>
-            <p className="mt-3 text-xs text-text-muted">
-              入力したテキストはそのまま保持されています。
-            </p>
-            <Button variant="secondary" className="mt-6 w-full" onClick={handleClose}>
-              閉じる
-            </Button>
+
+            {errorMessage && (
+              <div role="alert" className="mt-4 rounded-md border border-error bg-[#FEF2F2] px-4 py-3 text-sm text-[#991B1B]">
+                {errorMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleVerify} className="mt-6 space-y-4">
+              <Input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="123456"
+                className="text-center text-2xl tracking-[0.4em]"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
+                disabled={isLoading}
+                aria-label="確認コード"
+                autoFocus
+              />
+              <Button type="submit" variant="primary" className="w-full" disabled={isLoading || code.length < 6}>
+                {isLoading ? "確認中…" : "ログイン"}
+              </Button>
+            </form>
+            <button
+              type="button"
+              onClick={() => { setIsSent(false); setCode(""); setErrorMessage(""); }}
+              className="mt-4 w-full text-center text-xs text-text-muted transition-colors hover:text-primary"
+            >
+              メールアドレスを入力し直す
+            </button>
           </div>
         ) : (
           <div className="mt-6">
@@ -147,7 +202,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 </span>
               </label>
               <Button type="submit" variant="primary" className="w-full" disabled={isLoading || !agreed}>
-                {isLoading ? "送信中…" : "マジックリンクを送る"}
+                {isLoading ? "送信中…" : "確認コードを送る"}
               </Button>
             </form>
           </div>

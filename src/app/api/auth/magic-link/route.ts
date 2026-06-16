@@ -37,19 +37,11 @@ export async function POST(request: Request) {
     const supabase = await createClient();
 
     // コールバック URL
-    // NEXT_PUBLIC_SITE_URL が設定されていればそちらを優先（本番URL固定）
-    // 未設定の場合はリクエストのoriginにフォールバック
-    const origin =
-      process.env.NEXT_PUBLIC_SITE_URL ??
-      new URL(request.url).origin;
-    const redirectTo = `${origin}/auth/callback`;
-
-    // Magic Link を送信
+    // 確認コード方式で送信する。
+    // emailRedirectTo を渡さないことで、PKCEのリンク（鍵不一致やメールスキャナ
+    // 消費で失敗しやすい）に依存せず、メール内の6桁コードでログインさせる。
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: redirectTo,
-      },
     });
 
     if (error) {

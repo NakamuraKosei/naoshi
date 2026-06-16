@@ -9,13 +9,17 @@ import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 
 /**
- * /login page (Magic Link only)
+ * /login page（確認コード方式）
+ * 1. メール入力 → コードをメール送信
+ * 2. メールに届いた6桁コードを入力 → verifyOtp でログイン
+ *   ※ マジックリンクのPKCE鍵不一致・メールスキャナ消費を避けるためコード方式に変更
  */
 export default function LoginPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
@@ -31,7 +35,8 @@ export default function LoginPage() {
     });
   }, [router]);
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  // 1段階目: メールアドレスにコードを送信
+  async function handleSendCode(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setErrorMessage(null);
@@ -46,7 +51,31 @@ export default function LoginPage() {
         setErrorMessage(data.error ?? "送信に失敗しました。");
         return;
       }
-      setSubmitted(true);
+      setStep("code");
+    } catch {
+      setErrorMessage("通信エラーが発生しました。");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // 2段階目: コードを検証してログイン
+  async function handleVerifyCode(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: code.trim(),
+        type: "email",
+      });
+      if (error) {
+        setErrorMessage("コードが正しくないか、有効期限が切れています。もう一度お試しください。");
+        return;
+      }
+      router.replace("/app");
     } catch {
       setErrorMessage("通信エラーが発生しました。");
     } finally {
@@ -69,14 +98,46 @@ export default function LoginPage() {
           <Logo size="md" asLink={false} />
         </div>
 
-        {submitted ? (
-          <div className="mt-8 text-center">
-            <h2 className="text-xl font-bold text-text-primary">メールを確認してください</h2>
-            <p className="mt-3 text-sm leading-[1.75] text-text-secondary">
-              <span className="font-medium text-text-primary">{email}</span> にログイン用のリンクを送りました。
+        {step === "code" ? (
+          <div className="mt-8">
+            <h2 className="text-center text-xl font-bold text-text-primary">確認コードを入力</h2>
+            <p className="mt-3 text-center text-sm leading-[1.75] text-text-secondary">
+              <span className="font-medium text-text-primary">{email}</span> に届いた6桁のコードを入力してください。
             </p>
-            <p className="mt-2 text-xs text-text-muted">
-              リンクの有効期限は1時間です。届かない場合は迷惑メールフォルダをご確認ください。
+
+            {errorMessage && (
+              <p className="mt-4 text-center text-sm text-error">{errorMessage}</p>
+            )}
+
+            <form onSubmit={handleVerifyCode} className="mt-6 space-y-4">
+              <Input
+                type="text"
+                required
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="123456"
+                className="text-center text-2xl tracking-[0.4em]"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
+                disabled={loading}
+                autoFocus
+              />
+              <Button type="submit" variant="primary" className="w-full" disabled={loading || code.length < 6}>
+                {loading ? "確認中…" : "ログイン"}
+              </Button>
+            </form>
+
+            <button
+              type="button"
+              onClick={() => { setStep("email"); setCode(""); setErrorMessage(null); }}
+              className="mt-4 w-full text-center text-xs text-text-muted transition-colors hover:text-primary"
+            >
+              メールアドレスを入力し直す
+            </button>
+            <p className="mt-3 text-center text-xs text-text-muted">
+              コードの有効期限は1時間です。届かない場合は迷惑メールフォルダもご確認ください。
             </p>
           </div>
         ) : (
@@ -89,7 +150,7 @@ export default function LoginPage() {
               <p className="mt-4 text-center text-sm text-error">{errorMessage}</p>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <form onSubmit={handleSendCode} className="mt-6 space-y-4">
               <Input
                 type="email"
                 required
@@ -114,7 +175,7 @@ export default function LoginPage() {
                 </span>
               </label>
               <Button type="submit" variant="primary" className="w-full" disabled={loading || !agreed}>
-                {loading ? "送信中…" : "マジックリンクを送る"}
+                {loading ? "送信中…" : "確認コードを送る"}
               </Button>
             </form>
           </div>

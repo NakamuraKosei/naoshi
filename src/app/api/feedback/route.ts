@@ -102,7 +102,7 @@ export async function POST(request: Request) {
     // --- 4. メール通知（失敗してもユーザーにはエラーを返さない） ---
     try {
       await resend.emails.send({
-        from: "Naoshi <onboarding@resend.dev>",
+        from: "Naoshi <noreply@naoshiai.com>",
         to: NOTIFY_EMAIL,
         subject: "【Naoshi】新しいフィードバック",
         text: `ユーザー: ${user.email ?? user.id}\n\nコメント:\n${comment}\n\n送信日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}`,

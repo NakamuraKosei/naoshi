@@ -345,19 +345,24 @@ export function AppClient({
             aria-label="出力エリア"
             className="flex min-h-[560px] flex-col rounded-lg border border-border bg-surface p-6 shadow-sm"
           >
-            <div className="mb-3">
+            <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-text-primary">なおした文章</h2>
+              {output && !isLoading && (
+                <span className="text-xs text-text-muted">クリックして編集できます</span>
+              )}
             </div>
             {isLoading ? (
               <OutputSkeleton />
             ) : (
+              // 変換結果はクライアント側でそのまま編集可能（API再呼び出し・課金には影響しない）。
+              // output state を直接更新するため、コピー・文字数カウンターも編集に追従する。
               <Textarea
                 value={output}
-                readOnly
+                onChange={(e) => setOutput(e.target.value)}
                 placeholder="ここに変換結果が表示されます。"
-                className="flex-1 min-h-[420px] bg-[#FAFBFD]"
+                className="flex-1 min-h-[420px]"
                 style={editorFontStyle}
-                aria-label="なおした文章"
+                aria-label="なおした文章（編集できます）"
               />
             )}
             <div className="mt-3 flex items-center justify-between">

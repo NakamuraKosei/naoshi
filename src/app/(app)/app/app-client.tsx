@@ -242,7 +242,7 @@ export function AppClient({
             <h1 className="text-lg font-bold text-text-primary md:text-xl">
               文章をなおす
             </h1>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 md:mt-3">
               <CategorySelector value={category} onChange={handleCategoryChange} />
               <StyleSelector value={style} onChange={setStyle} />
               {canDoubleCheck && (

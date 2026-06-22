@@ -237,20 +237,23 @@ export function AppClient({
         {/* 画面見出し + 文体セレクタ */}
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-xl font-bold text-text-primary md:text-3xl">
-              AIっぽさのない、自然なレポートへ。
+            {/* 作業画面なので見出しは小さめ（宣伝コピーは控えめに） */}
+            <h1 className="text-lg font-bold text-text-primary md:text-xl">
+              文章をなおす
             </h1>
-            <p className="mt-1 text-sm text-text-secondary">
-              貼り付けて「なおす」を押すだけ。
-            </p>
-            {/* プラン情報 + 残量表示 */}
-            <p className={cn(
-              "mt-2 text-xs",
-              isQuotaExhausted ? "text-[#EF4444] font-semibold" : "text-text-muted",
+            {/* プラン情報 + 残量表示（作業画面で重要なのでチップで見やすく） */}
+            <div className={cn(
+              "mt-2 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-full px-3 py-1 text-xs",
+              isQuotaExhausted
+                ? "bg-[#FEF2F2] text-[#EF4444] font-semibold"
+                : "bg-primary-lighter text-text-secondary",
             )}>
-              {planLabel}プラン ・ {remainingLabel} ・
-              1回あたり最大 {maxChars.toLocaleString()} 字
-            </p>
+              <span className="font-medium">{planLabel}プラン</span>
+              <span className="text-text-muted">·</span>
+              <span>{remainingLabel}</span>
+              <span className="text-text-muted">·</span>
+              <span>1回最大 {maxChars.toLocaleString()} 字</span>
+            </div>
           </div>
           <div className="flex flex-col items-end gap-2">
             {/* 1行目: カテゴリ + 文体 */}

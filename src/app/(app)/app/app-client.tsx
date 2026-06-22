@@ -437,12 +437,12 @@ export function AppClient({
           </div>
         )}
 
-        {/* なおすボタン（デスクトップ） */}
-        <div className="mt-8 hidden justify-center md:flex">
+        {/* なおすボタン（デスクトップ・sticky追従で常に画面内に表示） */}
+        <div className="sticky bottom-6 z-30 mt-8 hidden justify-center md:flex">
           <Button
             variant="primary"
             size="lg"
-            className="min-w-[240px] py-4"
+            className="min-w-[240px] py-4 shadow-lg"
             onClick={handleHumanize}
             disabled={isSubmitDisabled}
             aria-busy={isLoading}
@@ -671,9 +671,21 @@ function ConvertingOverlay({ doubleCheck }: { doubleCheck: boolean }) {
     </>
   );
 
+  // 進捗バー（おおよその目安）。
+  // LLMは正確な進捗を取得できないため、上限92%へ漸近的に伸ばす擬似進捗。
+  // 完了時はオーバーレイ自体が消える。ダブルチェックは時間が長いので伸びを緩やかに。
+  const [progress, setProgress] = useState(8);
+  useEffect(() => {
+    const factor = doubleCheck ? 0.02 : 0.06;
+    const id = setInterval(() => {
+      setProgress((p) => (p >= 92 ? 92 : p + (92 - p) * factor));
+    }, 500);
+    return () => clearInterval(id);
+  }, [doubleCheck]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.4)] px-4 backdrop-blur-sm">
-      <div className="flex flex-col items-center gap-5 rounded-2xl bg-surface px-8 py-10 shadow-lg sm:px-12">
+      <div className="flex w-full max-w-[340px] flex-col items-center gap-5 rounded-2xl bg-surface px-8 py-10 shadow-lg sm:px-12">
         {/* 回転アニメーション */}
         <div className="relative h-12 w-12">
           <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-border border-t-primary" />
@@ -682,6 +694,13 @@ function ConvertingOverlay({ doubleCheck }: { doubleCheck: boolean }) {
         <p className="max-w-[280px] text-center text-sm leading-relaxed text-text-muted">
           {description}
         </p>
+        {/* 進捗バー（おおよそ） */}
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border" aria-hidden="true">
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
     </div>
   );

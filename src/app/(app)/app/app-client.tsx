@@ -234,8 +234,9 @@ export function AppClient({
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-7xl px-6 py-8">
-        {/* 画面見出し + 文体セレクタ */}
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        {/* 画面見出し + 操作系（C案: 上下2段レイアウト。左右の高さ非対称を解消） */}
+        <div className="mb-6 flex flex-col gap-4">
+          {/* 1段目: 見出し + プラン残量チップ */}
           <div>
             {/* 作業画面なので見出しは小さめ（宣伝コピーは控えめに） */}
             <h1 className="text-lg font-bold text-text-primary md:text-xl">
@@ -255,13 +256,10 @@ export function AppClient({
               <span>1回最大 {maxChars.toLocaleString()} 字</span>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            {/* 1行目: カテゴリ + 文体 */}
-            <div className="flex flex-wrap items-center gap-3">
-              <CategorySelector value={category} onChange={handleCategoryChange} />
-              <StyleSelector value={style} onChange={setStyle} />
-            </div>
-            {/* 2行目: ダブルチェック */}
+          {/* 2段目: カテゴリ・文体・ダブルチェックを横1列に集約 */}
+          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+            <CategorySelector value={category} onChange={handleCategoryChange} />
+            <StyleSelector value={style} onChange={setStyle} />
             {canDoubleCheck && (
               <DoubleCheckToggle
                 checked={doubleCheck}

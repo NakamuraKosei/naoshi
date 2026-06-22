@@ -234,39 +234,38 @@ export function AppClient({
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-7xl px-6 py-8">
-        {/* 画面見出し + 操作系（C案: 上下2段レイアウト。左右の高さ非対称を解消） */}
-        <div className="mb-6 flex flex-col gap-4">
-          {/* 1段目: 見出し + プラン残量チップ */}
-          <div>
+        {/* 画面見出し + 操作系（ハイブリッド案: 1段目=見出し＋操作系を横並び、2段目=プラン） */}
+        <div className="mb-6 flex flex-col gap-3">
+          {/* 1段目: 見出し（左） + カテゴリ・文体・ダブルチェック（右） */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             {/* 作業画面なので見出しは小さめ（宣伝コピーは控えめに） */}
             <h1 className="text-lg font-bold text-text-primary md:text-xl">
               文章をなおす
             </h1>
-            {/* プラン情報 + 残量表示（作業画面で重要なのでチップで見やすく） */}
-            <div className={cn(
-              "mt-2 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-full px-3 py-1 text-xs",
-              isQuotaExhausted
-                ? "bg-[#FEF2F2] text-[#EF4444] font-semibold"
-                : "bg-primary-lighter text-text-secondary",
-            )}>
-              <span className="font-medium">{planLabel}プラン</span>
-              <span className="text-text-muted">·</span>
-              <span>{remainingLabel}</span>
-              <span className="text-text-muted">·</span>
-              <span>1回最大 {maxChars.toLocaleString()} 字</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <CategorySelector value={category} onChange={handleCategoryChange} />
+              <StyleSelector value={style} onChange={setStyle} />
+              {canDoubleCheck && (
+                <DoubleCheckToggle
+                  checked={doubleCheck}
+                  onChange={setDoubleCheck}
+                  disabled={isLoading}
+                />
+              )}
             </div>
           </div>
-          {/* 2段目: カテゴリ・文体・ダブルチェックを横1列に集約 */}
-          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
-            <CategorySelector value={category} onChange={handleCategoryChange} />
-            <StyleSelector value={style} onChange={setStyle} />
-            {canDoubleCheck && (
-              <DoubleCheckToggle
-                checked={doubleCheck}
-                onChange={setDoubleCheck}
-                disabled={isLoading}
-              />
-            )}
+          {/* 2段目: プラン情報 + 残量表示（横長なので単独行・チップで見やすく） */}
+          <div className={cn(
+            "inline-flex flex-wrap items-center gap-x-2 gap-y-1 self-start rounded-full px-3 py-1 text-xs",
+            isQuotaExhausted
+              ? "bg-[#FEF2F2] text-[#EF4444] font-semibold"
+              : "bg-primary-lighter text-text-secondary",
+          )}>
+            <span className="font-medium">{planLabel}プラン</span>
+            <span className="text-text-muted">·</span>
+            <span>{remainingLabel}</span>
+            <span className="text-text-muted">·</span>
+            <span>1回最大 {maxChars.toLocaleString()} 字</span>
           </div>
         </div>
 

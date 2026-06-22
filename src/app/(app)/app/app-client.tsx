@@ -131,6 +131,12 @@ export function AppClient({
       return;
     }
 
+    // 短すぎる入力は変換せず案内（サーバー側のMIN_INPUT_CHARSと揃える）
+    if (input.trim().length < 10) {
+      setErrorMessage("もう少し長い文章を入力してください（10文字以上）。");
+      return;
+    }
+
     setErrorMessage("");
     setOutput("");
     setModificationPoints([]);

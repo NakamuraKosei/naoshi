@@ -36,6 +36,9 @@ export const runtime = "nodejs";
 // 上限を5分に広げて途中打ち切りによる変換失敗を防ぐ（実課金は使った分のみ）。
 export const maxDuration = 300;
 
+// 変換に必要な最小入力文字数（これ未満は変換せず案内する）
+const MIN_INPUT_CHARS = 10;
+
 // Claude モデルID（Sonnet 4.6。指示追従の向上を狙い Sonnet 4 から更新）
 const MODEL_ID = "claude-sonnet-4-6";
 
@@ -189,11 +192,19 @@ export async function POST(request: Request) {
     );
   }
 
-  // --- 3. 入力バリデーション（空文字チェック） ---
+  // --- 3. 入力バリデーション（空文字 / 短すぎチェック） ---
+  // 数文字だけだと変換の意味がなく、無駄なAPI消費や不自然な出力を招くため
+  // 最小文字数(MIN_INPUT_CHARS)未満は変換せず案内する。
   const text = body.text.trim();
   if (text.length === 0) {
     return Response.json(
       { error: "テキストを入力してください。" },
+      { status: 400 },
+    );
+  }
+  if (text.length < MIN_INPUT_CHARS) {
+    return Response.json(
+      { error: `もう少し長い文章を入力してください（${MIN_INPUT_CHARS}文字以上）。` },
       { status: 400 },
     );
   }

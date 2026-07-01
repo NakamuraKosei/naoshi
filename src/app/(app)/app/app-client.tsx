@@ -241,7 +241,7 @@ export function AppClient({
     <div className="min-h-screen bg-surface">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-7xl px-6 pb-8 pt-6">
+      <main className="mx-auto w-full max-w-6xl px-6 pb-8 pt-6">
         {/* 画面見出し + 操作系（見出し単独 → プラン残量と選択ボタンを同じ行に） */}
         <div className="mb-6 flex flex-col gap-3">
           {/* 見出し（作業画面なので小さめ。宣伝コピーは控えめに） */}

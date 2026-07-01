@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { clearLocalResults } from "@/lib/local-results";
 
 /**
  * ヘッダーナビゲーション（認証状態に応じて切り替え）
@@ -75,6 +76,8 @@ export function HeaderNav() {
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    // 共用PC対策: この端末に保存した変換結果はログアウト時に必ず消す
+    clearLocalResults();
     setMenuOpen(false);
     router.push("/");
     router.refresh();

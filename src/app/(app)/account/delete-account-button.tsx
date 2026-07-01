@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { clearLocalResults } from "@/lib/local-results";
 
 // 誤操作防止のため、この文字列の入力を必須にする
 const CONFIRM_WORD = "削除";
@@ -27,7 +28,8 @@ export function DeleteAccountButton() {
         setDeleting(false);
         return;
       }
-      // 削除完了。セッションは無効になっているのでトップへ戻す
+      // 削除完了。この端末に保存した変換結果も消してからトップへ戻す
+      clearLocalResults();
       window.location.href = "/?deleted=1";
     } catch {
       setErrorMessage("通信に失敗しました。接続を確認してください。");

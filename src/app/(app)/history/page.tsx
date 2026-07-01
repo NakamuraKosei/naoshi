@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { getPlanRule } from "@/lib/usage/plans";
+import { LocalHistory } from "./local-history";
 
 // 認証ガードは (app) グループの layout.tsx で実施済み
 export const dynamic = "force-dynamic";
@@ -86,11 +87,15 @@ function HistoryShell({ rows, plan }: { rows: UsageRow[]; plan: string }) {
             利用履歴
           </h1>
           <p className="mt-2 text-sm text-text-secondary">
-            直近10件の変換履歴です（{rule.label}プラン）。
-            プライバシー保護のため、入力本文は保存していません。
+            変換結果の控えと、直近10件の利用記録です（{rule.label}プラン）。
+            本文がサーバーに保存されることはありません。
           </p>
         </header>
 
+        {/* この端末に保存された変換結果（本文はlocalStorageのみ・クライアントで描画） */}
+        <LocalHistory />
+
+        <h2 className="mb-3 text-lg font-bold text-text-primary">利用記録</h2>
         {rows.length === 0 ? (
           <Card className="text-center">
             <p className="text-base text-text-secondary">

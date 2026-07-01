@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/cn";
+import { saveLocalResult } from "@/lib/local-results";
 
 // 文体の型定義
 type Style = "dearu" | "desumasu";
@@ -180,6 +181,15 @@ export function AppClient({
       const data = (await res.json()) as HumanizeResponse;
       setOutput(data.output);
       setModificationPoints(data.modificationPoints ?? []);
+
+      // 変換結果をこの端末のローカル履歴に保存（サーバーには保存しない）
+      saveLocalResult({
+        output: data.output,
+        category,
+        style,
+        mode: doubleCheck ? "double_check" : "standard",
+        inputChars: input.trim().length,
+      });
 
       // 残量をクライアント側で即時更新
       if (limitType === "count") {

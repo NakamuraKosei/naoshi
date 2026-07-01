@@ -16,8 +16,9 @@ export function SiteHeader({ className }: { className?: string }) {
         className,
       )}
     >
-      {/* ロゴは中央コンテナに入れず画面の左端（余白24px）に固定する（案A） */}
-      <div className="flex h-full w-full items-center justify-between gap-4 px-6">
+      {/* ヘッダー幅はapp本文(max-w-7xl)に合わせる:
+          appではロゴが見出しと揃い、LP(本文6xl)ではわずかに左に出る */}
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-4 px-6">
         <Logo size="md" />
         <HeaderNav />
       </div>

@@ -43,6 +43,7 @@ export async function GET(request: Request) {
   // --- 3. 残量チェック結果をそのまま返す ---
   const limit = await checkLimit(auth.userId, auth.supabase);
   // userId は内部用なのでレスポンスから除外する
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { userId: _userId, ...publicLimit } = limit;
   return Response.json(publicLimit);
 }

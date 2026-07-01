@@ -15,17 +15,17 @@ import { createClient } from "@/lib/supabase/client";
  */
 export function HeaderNav() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  // 環境変数未設定（ローカル初期状態）なら最初から「未ログイン」扱いにする
+  // （effect内で同期的にsetStateするとlintエラー＆無駄な再レンダーになるため初期値で解決）
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(
+    () => (process.env.NEXT_PUBLIC_SUPABASE_URL ? null : false),
+  );
   const [plan, setPlan] = useState<string | null>(null);
   // モバイルメニューの開閉
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (!url) {
-      setIsLoggedIn(false);
-      return;
-    }
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
 
     const supabase = createClient();
 

@@ -67,12 +67,14 @@ export function AppClient({
   const [feedbackComment, setFeedbackComment] = useState("");
   const [feedbackSending, setFeedbackSending] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
-  // サクセスバナー表示（自動消去）
+  // サクセスバナー表示（マウント5秒後に自動で消す）
+  // ※ レンダー本体でsetTimeoutすると再レンダーのたびにタイマーが積まれるためuseEffectで1回だけ
   const [showSuccess, setShowSuccess] = useState(checkoutSuccess);
-  if (checkoutSuccess && showSuccess) {
-    // 5秒後に自動で消す
-    setTimeout(() => setShowSuccess(false), 5000);
-  }
+  useEffect(() => {
+    if (!checkoutSuccess) return;
+    const id = setTimeout(() => setShowSuccess(false), 5000);
+    return () => clearTimeout(id);
+  }, [checkoutSuccess]);
 
   // 残量をクライアント側でトラッキング（変換成功後に即時反映するため）
   const [currentRemaining, setCurrentRemaining] = useState(initialRemaining);

@@ -24,10 +24,9 @@ export const runtime = "nodejs";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // 送信元アドレス。
-// 全ユーザーに送るには Resend でドメイン認証（naoshiai.com）を行い、
-// 環境変数 RESEND_FROM に「Naoshi <info@naoshiai.com>」等を設定すること。
-// 未設定時は Resend のテスト用送信元（アカウント本人にのみ送信可）。
-const MAIL_FROM = process.env.RESEND_FROM ?? "Naoshi <onboarding@resend.dev>";
+// naoshiai.com は Resend でドメイン認証済み（2026-06）のため独自ドメインを既定にする。
+// 環境変数 RESEND_FROM で上書き可能。
+const MAIL_FROM = process.env.RESEND_FROM ?? "Naoshi <noreply@naoshiai.com>";
 
 // 料金表（pricing-plans.tsx / requirements.md 第7章と同期させること）
 const PRICING_TEXT = `■ 無料プラン  ¥0

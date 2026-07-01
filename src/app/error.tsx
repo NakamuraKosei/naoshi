@@ -5,6 +5,7 @@
 // ユーザーにリカバリー方法を提示する
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function GlobalError({
@@ -35,12 +36,12 @@ export default function GlobalError({
           <Button variant="primary" onClick={reset}>
             もう一度試す
           </Button>
-          <a
+          <Link
             href="/"
             className="text-sm font-medium text-text-muted transition-colors hover:text-primary"
           >
             トップページに戻る
-          </a>
+          </Link>
         </div>
       </div>
     </main>

@@ -175,6 +175,7 @@ export function HeroConverter() {
 // --- サブコンポーネント ---
 
 /** カテゴリセレクタ（レポート / ビジネス） — LP未使用だが将来用に残す */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function CategorySelector({
   value,
   onChange,

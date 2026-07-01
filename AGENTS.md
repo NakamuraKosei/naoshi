@@ -25,7 +25,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | ファイル | 用途 | 備考 |
 |---|---|---|
 | `humanize-system-prompt-v4.1.md` | 長文変換（500字超） | 構成・展開の再設計を強化（設計図をなぞらない・重み偏り・見出し段落禁止・否定形多用抑制）。ダブルチェックでも使用 |
-| `humanize-system-prompt-short-v4.0.md` | 短文変換（500字以下） | v4.0の短文特化版（長文のみv4.1化） |
+| `humanize-system-prompt-short-v4.1.md` | 短文変換（500字以下） | v4.1の短文特化版（メタ説明禁止・否定形抑制・話し口調禁止等を同期） |
 | `repair-prompt-v1.1.md` | ダブルチェック用修正ループ | ダブルチェックの2段階目。NGワードリスト・文体水準維持を追加 |
 | `humanize-business-v1.1.md` | ビジネス長文変換（500字超） | フォーマリティ判定付き。ビジネス版ダブルチェック1段階目でも使用 |
 | `humanize-business-short-v1.1.md` | ビジネス短文変換（500字以下） | v1.1の短文特化版。フォーマル度判定・意味保全を追加 |
@@ -36,6 +36,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | ファイル | 備考 |
 |---|---|
 | `humanize-system-prompt-v4.0.md` | v4.1に置き換え済み（長文）。ロールバック用に保持 |
+| `humanize-system-prompt-short-v4.0.md` | short-v4.1に置き換え済み。ロールバック用に保持 |
 | `humanize-system-prompt-v3.2.md` | v4.0に置き換え済み |
 | `humanize-system-prompt-v3.md` | v4.0に置き換え済み |
 | `repair-prompt-v1.0.md` | v1.1に置き換え済み |

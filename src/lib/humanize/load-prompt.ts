@@ -25,7 +25,7 @@ export const SHORT_TEXT_THRESHOLD = 500;
 // カテゴリ × 長さごとのファイル名マッピング
 const PROMPT_FILES: Record<Category, Record<TextLength, string>> = {
   report: {
-    short: "humanize-system-prompt-short-v4.0.md",
+    short: "humanize-system-prompt-short-v4.1.md",
     long: "humanize-system-prompt-v4.1.md",
   },
   business: {

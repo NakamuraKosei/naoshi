@@ -12,6 +12,7 @@ import { getPlanRule, type PlanKey } from "@/lib/usage/plans";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { PortalButton } from "./portal-button";
 import { DeleteAccountButton } from "./delete-account-button";
+import { FeedbackCard } from "./feedback-card";
 
 export const dynamic = "force-dynamic";
 
@@ -157,6 +158,9 @@ export default async function AccountPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* ご意見・ご要望（任意送信。/api/feedback を再利用） */}
+        <FeedbackCard />
 
         {/* アカウント削除（App Store ガイドライン 5.1.1(v) 対応の退会導線） */}
         <Card className="mt-8 border-[#FECACA]">

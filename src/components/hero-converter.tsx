@@ -117,6 +117,14 @@ export function HeroConverter() {
             <p className="mt-4 text-lg leading-[1.75] text-text-secondary">
               日本語特化AIヒューマナイザー。<br className="sm:hidden" />レポートを貼り付けて「なおす」を押すだけ。
             </p>
+            {/* 主要な価値を一行で示す（区切り点でつなぐ） */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-text-muted">
+              <span>参考文献はそのまま</span>
+              <span aria-hidden className="text-border">·</span>
+              <span>あなたの文体を再現</span>
+              <span aria-hidden className="text-border">·</span>
+              <span>コピペチェッカー対策</span>
+            </div>
           </div>
 
           {/* 文体セレクタ */}

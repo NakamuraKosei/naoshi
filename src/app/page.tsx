@@ -55,6 +55,73 @@ export default function Home() {
           </div>
         </section>
 
+        {/* 2.5 マイ文体スポットライト（白 / py-24 / 2カラム） */}
+        <section className="bg-surface">
+          <div className="mx-auto w-full max-w-6xl px-6 py-24">
+            <div className="grid items-center gap-12 md:grid-cols-2">
+              {/* 左: 説明 */}
+              <div>
+                <span className="inline-flex items-center rounded-full bg-primary-light px-3 py-1 text-xs font-semibold text-primary">
+                  ヘビープラン
+                </span>
+                <h2 className="mt-4 text-3xl font-semibold leading-[1.3] text-text-primary md:text-[32px]">
+                  あなたの文体で、<br />あなたが書いたように。
+                </h2>
+                <p className="mt-4 text-base leading-[1.8] text-text-secondary">
+                  自分で書いたレポートを一つ登録するだけ。Naoshi があなたの言い回しや語尾、文のリズムを学び、変換結果をあなたらしい文章に寄せます。誰が書いても同じになりがちなAIの文章から、あなたにしか書けない文章へ。
+                </p>
+                <ul className="mt-6 space-y-3 text-sm text-text-secondary">
+                  {[
+                    "語尾・言い回し・文の長さといった癖を再現",
+                    "事実や参考文献はそのまま。中身は変えません",
+                    "登録した本文は保存せず、文体の特徴だけを学習",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mt-0.5 h-4 w-4 flex-none text-primary"
+                        aria-hidden
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* 右: ビフォー→アフターのイメージ */}
+              <div className="space-y-3">
+                <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+                  <p className="mb-2 text-xs font-medium text-text-muted">よくあるAIの文</p>
+                  <p className="text-sm leading-[1.85] text-text-secondary">
+                    本レポートでは、まずSNSの利点について述べる。次に問題点を検討し、最後に今後のあり方をまとめる。
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-2 text-xs font-medium text-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <polyline points="19 12 12 19 5 12" />
+                  </svg>
+                  マイ文体で変換
+                </div>
+                <div className="rounded-xl border-2 border-primary/30 bg-primary-lighter p-5 shadow-sm">
+                  <p className="mb-2 text-xs font-medium text-primary">あなたの文体</p>
+                  <p className="text-sm leading-[1.85] text-text-primary">
+                    そもそも、SNSは私たちの生活を本当に豊かにしたのだろうか。筆者は、その便利さの裏で見落とされてきたものがあるのではないかと考えている。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 3. 使い方セクション（白 / py-24 / 3ステップ） */}
         <section id="how-it-works" className="bg-surface">
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
@@ -79,8 +146,8 @@ export default function Home() {
               />
               <StepCard
                 step={3}
-                title="コピーして使う"
-                description={<>出力された文章をコピーして、<br />そのままレポートに貼り付けるだけです。</>}
+                title="編集してコピー"
+                description={<>気になる部分はその場で直せます。<br />仕上げてコピーし、そのまま使えます。</>}
               />
             </div>
           </div>

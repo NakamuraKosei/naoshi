@@ -111,8 +111,12 @@ export function MyStyleCard() {
       <CardHeader>
         <CardTitle>マイ文体</CardTitle>
         <CardDescription>
-          あなたが自分で書いたレポートから文章の癖を学び、変換結果をあなたの文体に寄せます。
-          貼り付けた本文は解析後に破棄され、保存されません。
+          <span className="block">
+            あなたが自分で書いたレポートから文章の癖を学び、変換結果をあなたの文体に寄せます。
+          </span>
+          <span className="mt-1 block text-text-muted">
+            貼り付けた本文は解析後に破棄され、保存されません。
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -159,13 +163,15 @@ export function MyStyleCard() {
         {/* 登録フォーム（未登録 or 登録し直し） */}
         {showForm && (
           <div className="space-y-3">
-            <p className="text-sm text-text-secondary">
-              <span className="font-medium text-text-primary">
-                AIを使わずに、あなた自身が書いた
-              </span>
-              レポートやエッセイを貼り付けてください（{MIN_SAMPLE_CHARS.toLocaleString()}
-              字以上）。AIが書いた文章を貼ると、AIの癖を学んでしまうためご注意ください。
-            </p>
+            <div className="space-y-1 text-sm text-text-secondary">
+              <p>
+                <span className="font-medium text-text-primary">AIを使わずに、あなた自身が書いた</span>
+                レポートやエッセイを貼り付けてください（{MIN_SAMPLE_CHARS.toLocaleString()}字以上）。
+              </p>
+              <p className="text-text-muted">
+                ※ AIが書いた文章を貼ると、AIの癖を学んでしまうためご注意ください。
+              </p>
+            </div>
             <textarea
               value={sample}
               onChange={(e) => setSample(e.target.value)}

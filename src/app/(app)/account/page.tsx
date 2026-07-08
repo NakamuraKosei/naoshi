@@ -13,6 +13,7 @@ import { checkLimit } from "@/lib/usage/check-limit";
 import { PortalButton } from "./portal-button";
 import { DeleteAccountButton } from "./delete-account-button";
 import { FeedbackCard } from "./feedback-card";
+import { MyStyleCard } from "./my-style-card";
 
 export const dynamic = "force-dynamic";
 
@@ -158,6 +159,9 @@ export default async function AccountPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* マイ文体（ヘビープラン限定。自分の文体を学習させて変換に反映） */}
+        {rule.doubleCheck && <MyStyleCard />}
 
         {/* ご意見・ご要望（任意送信。/api/feedback を再利用） */}
         <FeedbackCard />

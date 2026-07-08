@@ -30,6 +30,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `humanize-business-v1.1.md` | ビジネス長文変換（500字超） | フォーマリティ判定付き。ビジネス版ダブルチェック1段階目でも使用 |
 | `humanize-business-short-v1.1.md` | ビジネス短文変換（500字以下） | v1.1の短文特化版。フォーマル度判定・意味保全を追加 |
 | `repair-business-v1.1.md` | ビジネス用ダブルチェック修正ループ | ビジネス版の2段階目。NGワードリスト・フォーマル度保護を強化 |
+| `style-profile-extract-v1.0.md` | マイ文体: 文体プロファイル抽出 | 登録時に自筆サンプル（1,000字以上）から9項目の癖を解析しJSON化。本文はDBに保存しない |
+| `style-inject-v1.0.md` | マイ文体: 変換時の注入テンプレート | `{{STYLE_PROFILE}}`を実行時置換して変換プロンプト末尾に追記。優先順位（事実>指定文体>本編ルール>癖はsoft）と出力前の全体見直しを含む。ヘビープラン限定・「自分の文体」トグルON時のみ |
 
 **アーカイブ（旧版・コード未参照）:**
 

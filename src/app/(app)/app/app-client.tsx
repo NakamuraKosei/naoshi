@@ -80,6 +80,29 @@ export function AppClient({
   // 残量をクライアント側でトラッキング（変換成功後に即時反映するため）
   const [currentRemaining, setCurrentRemaining] = useState(initialRemaining);
 
+  // マイ文体（ヘビープラン限定）: null=未取得, true/false=登録済みか
+  const [myStyleRegistered, setMyStyleRegistered] = useState<boolean | null>(null);
+  const [useMyStyle, setUseMyStyle] = useState(false);
+
+  // 登録状況を取得（ヘビープランのみ）。登録済みならデフォルトON
+  useEffect(() => {
+    if (!canDoubleCheck) return;
+    let cancelled = false;
+    fetch("/api/style-profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { registered?: boolean } | null) => {
+        if (cancelled || !data) return;
+        setMyStyleRegistered(!!data.registered);
+        setUseMyStyle(!!data.registered);
+      })
+      .catch(() => {
+        // 取得失敗時はトグル非表示のまま（変換自体には影響しない）
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [canDoubleCheck]);
+
   // LPから引き継いだテキストがあれば入力欄にセット
   useEffect(() => {
     const pending = sessionStorage.getItem(PENDING_TEXT_KEY);
@@ -154,6 +177,8 @@ export function AppClient({
           style,
           category,
           mode: doubleCheck ? "double_check" : "standard",
+          // マイ文体（登録済みかつトグルONのときだけ有効）
+          useMyStyle: useMyStyle && myStyleRegistered === true,
         }),
       });
 
@@ -279,6 +304,14 @@ export function AppClient({
                 <DoubleCheckToggle
                   checked={doubleCheck}
                   onChange={setDoubleCheck}
+                  disabled={isLoading}
+                />
+              )}
+              {/* マイ文体トグル（ヘビープラン かつ プロファイル登録済みのみ表示） */}
+              {canDoubleCheck && myStyleRegistered === true && (
+                <MyStyleToggle
+                  checked={useMyStyle}
+                  onChange={setUseMyStyle}
                   disabled={isLoading}
                 />
               )}
@@ -666,6 +699,51 @@ function DoubleCheckToggle({
       </span>
       <span>ダブルチェック</span>
       <span className="text-xs text-text-muted">×3</span>
+    </label>
+  );
+}
+
+/** マイ文体トグル（自分の文体に寄せる。ヘビープラン＋登録済みのみ） */
+function MyStyleToggle({
+  checked,
+  onChange,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled: boolean;
+}) {
+  return (
+    <label
+      className={cn(
+        "inline-flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+        checked
+          ? "border-primary bg-primary-light text-primary"
+          : "border-border bg-surface text-text-secondary hover:border-primary/40",
+        disabled && "pointer-events-none opacity-50",
+      )}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        disabled={disabled}
+        className="sr-only"
+      />
+      <span
+        className={cn(
+          "flex h-5 w-9 items-center rounded-full p-0.5 transition-colors",
+          checked ? "bg-primary" : "bg-gray-300",
+        )}
+      >
+        <span
+          className={cn(
+            "h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
+            checked && "translate-x-4",
+          )}
+        />
+      </span>
+      <span>自分の文体</span>
     </label>
   );
 }

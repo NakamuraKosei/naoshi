@@ -40,6 +40,10 @@ const REPAIR_PROMPT_FILES: Record<Category, string> = {
   business: "repair-business-v1.1.md",
 };
 
+// マイ文体（文体プロファイル）関連のプロンプト
+const STYLE_EXTRACT_FILE = "style-profile-extract-v1.0.md";
+const STYLE_INJECT_FILE = "style-inject-v1.0.md";
+
 // キャッシュ
 const cachedPrompts: Record<string, string | null> = {};
 
@@ -95,4 +99,35 @@ export async function loadRepairPrompt(
   const content = await readFile(promptPath, "utf8");
   cachedPrompts[cacheKey] = content;
   return content;
+}
+
+/**
+ * 文体プロファイル抽出用のシステムプロンプトを取得する。
+ * （マイ文体の登録時に、サンプル文から癖を解析するパスで使う）
+ */
+export async function loadStyleExtractPrompt(): Promise<string> {
+  const cacheKey = "style:extract";
+  if (cachedPrompts[cacheKey]) {
+    return cachedPrompts[cacheKey]!;
+  }
+  const promptPath = path.join(process.cwd(), "prompts", STYLE_EXTRACT_FILE);
+  const content = await readFile(promptPath, "utf8");
+  cachedPrompts[cacheKey] = content;
+  return content;
+}
+
+/**
+ * マイ文体の注入テンプレートを取得し、{{STYLE_PROFILE}} を実際の
+ * プロファイル（summary）に置換して返す。
+ * 変換時、システムプロンプトの末尾に追記して使う。
+ */
+export async function loadStyleInjectAddon(
+  profileSummary: string,
+): Promise<string> {
+  const cacheKey = "style:inject";
+  if (!cachedPrompts[cacheKey]) {
+    const promptPath = path.join(process.cwd(), "prompts", STYLE_INJECT_FILE);
+    cachedPrompts[cacheKey] = await readFile(promptPath, "utf8");
+  }
+  return cachedPrompts[cacheKey]!.replace("{{STYLE_PROFILE}}", profileSummary);
 }

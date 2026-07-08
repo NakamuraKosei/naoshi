@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { loadHumanizeSystemPrompt, detectTextLength, type Category } from "@/lib/humanize/load-prompt";
+import { loadHumanizeSystemPrompt, loadStyleInjectAddon, detectTextLength, type Category } from "@/lib/humanize/load-prompt";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
 import { rateLimit } from "@/lib/rate-limit";
@@ -72,13 +72,14 @@ function styleLabel(style: Style): string {
  */
 function isValidBody(
   body: unknown,
-): body is { text: string; style: Style; mode?: Mode; category?: Category } {
+): body is { text: string; style: Style; mode?: Mode; category?: Category; useMyStyle?: boolean } {
   if (typeof body !== "object" || body === null) return false;
   const record = body as Record<string, unknown>;
   if (typeof record.text !== "string") return false;
   if (record.style !== "dearu" && record.style !== "desumasu") return false;
   if (record.mode !== undefined && record.mode !== "standard" && record.mode !== "double_check") return false;
   if (record.category !== undefined && record.category !== "report" && record.category !== "business") return false;
+  if (record.useMyStyle !== undefined && typeof record.useMyStyle !== "boolean") return false;
   return true;
 }
 
@@ -260,6 +261,22 @@ export async function POST(request: Request) {
     );
   }
 
+  // --- 3.35 マイ文体（文体プロファイル）の取得 ---
+  // ヘビープラン限定。フラグON かつ プロファイル登録済みのときだけ注入する。
+  // 未登録・非ヘビーの場合は黙って無視（プロンプトは従来と完全に同一になる）。
+  let styleProfileSummary: string | null = null;
+  if (body.useMyStyle === true && limit.canDoubleCheck && limit.userId) {
+    const { data: styleRow } = await auth.supabase
+      .from("user_style_profiles")
+      .select("profile")
+      .eq("user_id", limit.userId)
+      .maybeSingle();
+    const summary = (styleRow?.profile as { summary?: unknown } | null)?.summary;
+    if (typeof summary === "string" && summary.trim().length > 0) {
+      styleProfileSummary = summary.trim();
+    }
+  }
+
   // 文字数プランは今回の消費量が残量に収まるか事前確認する
   // （通常=入力字数×1、ダブルチェック=×3。従来はダブルチェックのみ
   //   チェックしており、通常モードは残量1字でも上限字数まで通せた）
@@ -300,8 +317,14 @@ export async function POST(request: Request) {
         mode === "double_check"
           ? `\n\n---\n\n## ダブルチェック追加指示（上位モデル向け・最優先）\n通常の変換よりもう一段踏み込むこと。\n- 段落の統合や順序の組み替えを積極的に行い、原文の設計図をより大きく崩す（事実・論点は保持）\n- 「1文だけの見出し段落」と否定形の強調（無視できない・見逃せない・小さくない等）を特に厳しく避ける\n- 章ごとの厚み（濃淡）を通常よりはっきりつける（最も詳しい段落と軽い段落の差を明確に）`
           : "";
-      // 文体指定・ダブルチェック追加指示・出力フォーマットを末尾に追加
-      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}${doubleCheckAddon}\n\n---\n\n## 出力フォーマット\n\n最初に変換後の本文だけを書く。本文をすべて書き終えたら、次の行に区切り線「${OUTPUT_DELIMITER}」を単独の行で出力し、その後に修正ポイントを1行に1個ずつ「・」で始めて箇条書きする。\n\n形式の例:\n（変換後の本文をそのまま記述）\n${OUTPUT_DELIMITER}\n・修正ポイント1\n・修正ポイント2\n\n厳守事項:\n- 本文部分には区切り線「${OUTPUT_DELIMITER}」やJSON・コードブロック記号（\`\`\`）を絶対に含めない。\n- 「本文:」などの前置きや見出しは付けず、いきなり本文から書き始める。\n- 修正ポイント: ${pointsInstruction}具体的にどの表現をどう変えたかがわかるように書く。`;
+      // マイ文体（文体プロファイル）の注入ブロック。
+      // テンプレートはprompts/style-inject-v1.0.mdから読み込み、優先順位ルールと
+      // 出力前の全体見直し（自己点検）を含む。非対象ユーザーでは空文字＝影響ゼロ。
+      const styleAddon = styleProfileSummary
+        ? `\n\n---\n\n${await loadStyleInjectAddon(styleProfileSummary)}`
+        : "";
+      // 文体指定・ダブルチェック追加指示・マイ文体・出力フォーマットを末尾に追加
+      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}${doubleCheckAddon}${styleAddon}\n\n---\n\n## 出力フォーマット\n\n最初に変換後の本文だけを書く。本文をすべて書き終えたら、次の行に区切り線「${OUTPUT_DELIMITER}」を単独の行で出力し、その後に修正ポイントを1行に1個ずつ「・」で始めて箇条書きする。\n\n形式の例:\n（変換後の本文をそのまま記述）\n${OUTPUT_DELIMITER}\n・修正ポイント1\n・修正ポイント2\n\n厳守事項:\n- 本文部分には区切り線「${OUTPUT_DELIMITER}」やJSON・コードブロック記号（\`\`\`）を絶対に含めない。\n- 「本文:」などの前置きや見出しは付けず、いきなり本文から書き始める。\n- 修正ポイント: ${pointsInstruction}具体的にどの表現をどう変えたかがわかるように書く。`;
     } catch (err) {
       // 本文はログに残さない
       console.error(

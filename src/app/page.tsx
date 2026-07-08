@@ -115,7 +115,7 @@ export default function Home() {
                       <h3 className="text-base font-bold text-text-primary md:text-lg">高精度モード</h3>
                     </div>
                     <p className="mt-1.5 text-sm leading-[1.7] text-text-secondary">
-                      上位のAIモデルで、AIっぽさをさらに徹底的に抑えます。
+                      より高性能なモデルで、AIっぽさをさらに徹底的に抑えます。
                     </p>
                   </div>
                   <span className="flex flex-none items-center gap-1 text-xs font-medium text-primary">
@@ -128,7 +128,7 @@ export default function Home() {
                 </summary>
                 <div className="px-7 pb-6 md:px-9">
                   <p className="text-sm leading-[1.95] text-text-secondary">
-                    通常より上位のAIモデルを使い、AIらしい言い回しや構成のパターンをより深く崩して書き換えます。コピペチェック・AI判定への対策をより強めたいときにおすすめです。
+                    通常よりも高性能なモデルを使い、AIらしい言い回しや構成のパターンをより深く崩して書き換えます。コピペチェック・AI判定への対策をより強めたいときにおすすめです。
                   </p>
                   <p className="mt-2 text-xs text-text-muted">※ 文字数を3倍消費します。</p>
                 </div>

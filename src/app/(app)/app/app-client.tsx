@@ -753,7 +753,7 @@ function ConvertingOverlay({ doubleCheck }: { doubleCheck: boolean }) {
   // モードに応じて待ち時間の説明文を出し分ける。文の区切りで改行して読みやすくする。
   const description = doubleCheck ? (
     <>
-      上位モデルで書き換えています。
+      より高性能なモデルで書き換えています。
       <br />
       2分ほどかかります。
     </>

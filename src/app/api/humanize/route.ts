@@ -256,7 +256,7 @@ export async function POST(request: Request) {
   const mode: Mode = body.mode ?? "standard";
   if (mode === "double_check" && !limit.canDoubleCheck) {
     return Response.json(
-      { error: "ダブルチェックはヘビープランでのみ利用可能です。" },
+      { error: "高精度モードはヘビープランでのみ利用可能です。" },
       { status: 403 },
     );
   }
@@ -287,7 +287,7 @@ export async function POST(request: Request) {
         {
           error:
             mode === "double_check"
-              ? "ダブルチェックに必要な文字数が残量を超えています。通常モードをお試しください。"
+              ? "高精度モードに必要な文字数が残量を超えています。通常モードをお試しください。"
               : `今期間の残り文字数（${limit.remaining.toLocaleString()}字）を超えています。文章を短くするか、リセットをお待ちください。`,
           // userId は内部用なのでレスポンスから除外する
           limit: { ...limit, userId: undefined },

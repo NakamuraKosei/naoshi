@@ -104,7 +104,7 @@ export function LocalHistory() {
                     </span>
                     {r.mode === "double_check" && (
                       <span className="rounded-full bg-primary-lighter px-2 py-0.5 text-xs font-medium text-primary">
-                        ダブルチェック
+                        高精度モード
                       </span>
                     )}
                   </div>

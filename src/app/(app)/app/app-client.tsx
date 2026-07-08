@@ -697,7 +697,7 @@ function DoubleCheckToggle({
           )}
         />
       </span>
-      <span>ダブルチェック</span>
+      <span>高精度モード</span>
     </label>
   );
 }
@@ -753,7 +753,7 @@ function ConvertingOverlay({ doubleCheck }: { doubleCheck: boolean }) {
   // モードに応じて待ち時間の説明文を出し分ける。文の区切りで改行して読みやすくする。
   const description = doubleCheck ? (
     <>
-      上位AIで書き換えています。
+      上位モデルで書き換えています。
       <br />
       2分ほどかかります。
     </>

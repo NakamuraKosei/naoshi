@@ -14,6 +14,7 @@ import { PortalButton } from "./portal-button";
 import { DeleteAccountButton } from "./delete-account-button";
 import { FeedbackCard } from "./feedback-card";
 import { MyStyleCard } from "./my-style-card";
+import { UsageGuide } from "./usage-guide";
 
 export const dynamic = "force-dynamic";
 
@@ -159,6 +160,9 @@ export default async function AccountPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* 使い方ガイド（折りたたみ式。全プラン共通） */}
+        <UsageGuide />
 
         {/* マイ文体（ヘビープラン限定。自分の文体を学習させて変換に反映） */}
         {rule.doubleCheck && <MyStyleCard />}

@@ -742,7 +742,7 @@ function MyStyleToggle({
           )}
         />
       </span>
-      <span>自分の文体</span>
+      <span>マイ文体</span>
     </label>
   );
 }

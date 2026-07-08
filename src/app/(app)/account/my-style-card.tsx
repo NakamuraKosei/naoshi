@@ -125,7 +125,7 @@ export function MyStyleCard() {
           <div className="space-y-4">
             {justRegistered && (
               <p className="text-sm text-[#10B981]">
-                文体を登録しました。変換画面の「自分の文体」をONにすると反映されます。
+                文体を登録しました。変換画面の「マイ文体」をONにすると反映されます。
               </p>
             )}
             <div>

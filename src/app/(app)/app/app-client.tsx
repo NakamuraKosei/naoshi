@@ -291,11 +291,11 @@ export function AppClient({
                 ? "bg-[#FEF2F2] text-[#EF4444] font-semibold"
                 : "bg-primary-lighter text-text-secondary",
             )}>
+              {/* コントロールを1行に収めるため表示は簡潔に。
+                  1回最大の字数は入力欄下のカウンターに出ているため省略。 */}
               <span className="font-medium">{planLabel}プラン</span>
               <span className="text-text-muted">·</span>
               <span>{remainingLabel}</span>
-              <span className="text-text-muted">·</span>
-              <span>1回最大 {maxChars.toLocaleString()} 字</span>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <CategorySelector value={category} onChange={handleCategoryChange} />

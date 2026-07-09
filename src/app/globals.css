@@ -118,3 +118,10 @@ h6 {
   from { opacity: 0; transform: translateY(10px) scale(0.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ログイン成功時のチェックマーク（ポンと拡大して出る） */
+@keyframes check-pop {
+  from { opacity: 0; transform: scale(0.5); }
+  60% { transform: scale(1.08); }
+  to { opacity: 1; transform: scale(1); }
+}

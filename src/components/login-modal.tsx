@@ -16,6 +16,22 @@ type LoginModalProps = {
 // コード再送のクールダウン秒数（連打によるメール浪費を防ぐ）
 const RESEND_COOLDOWN_SEC = 30;
 
+/** ボタン内に表示する回転スピナー（処理中の視覚フィードバック） */
+function Spinner() {
+  return (
+    <svg
+      className="mx-auto h-5 w-5 animate-spin"
+      viewBox="0 0 24 24"
+      fill="none"
+      role="status"
+      aria-label="処理中"
+    >
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-90" d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /**
  * ログインモーダル（6桁コード認証）
  * 未ログインユーザーが変換を試行した際に表示される遅延認証UI。
@@ -36,6 +52,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [resendCooldown, setResendCooldown] = useState(0);
   // 再送の完了メッセージ
   const [resendDone, setResendDone] = useState(false);
+  // ログイン成功の演出中フラグ（チェックマークを見せてから閉じる）
+  const [isSuccess, setIsSuccess] = useState(false);
   const codeInputRef = useRef<HTMLInputElement>(null);
   // フォーカストラップ（Tabキー循環 + Escapeで閉じる）
   const trapRef = useFocusTrap(isOpen, handleClose);
@@ -116,8 +134,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setErrorMessage("コードが正しくないか、有効期限が切れています。");
         return;
       }
-      // 成功: モーダルを閉じる（HeroConverter側のonAuthStateChangeが変換へ進める）
-      handleClose();
+      // 成功: チェックマークの演出を見せてから閉じる
+      // （HeroConverter側のonAuthStateChangeが変換へ進める）
+      setIsSuccess(true);
+      setTimeout(() => handleClose(), 900);
     } catch {
       setErrorMessage("通信エラーが発生しました。");
     } finally {
@@ -132,6 +152,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setErrorMessage("");
     setResendCooldown(0);
     setResendDone(false);
+    setIsSuccess(false);
     onClose();
   }
 
@@ -164,7 +185,17 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         {/* ロゴ */}
         <p className="text-2xl font-bold text-primary [font-family:var(--font-inter)]">Naoshi</p>
 
-        {isSent ? (
+        {isSuccess ? (
+          /* ログイン成功: チェックマークの演出（900ms後に自動で閉じる） */
+          <div className="flex flex-col items-center py-12">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#10B981] text-white [animation:check-pop_0.35s_ease-out]">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8" aria-hidden>
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <p className="mt-4 text-base font-semibold text-text-primary">ログインしました</p>
+          </div>
+        ) : isSent ? (
           <div className="mt-6">
             <h2 className="text-xl font-bold text-text-primary">
               確認コードを入力
@@ -202,6 +233,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   onBlur={() => setCodeFocused(false)}
                   disabled={isLoading}
                   aria-label="確認コード"
+                  data-autofocus
                   autoFocus
                   className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 />
@@ -224,7 +256,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 </div>
               </div>
               <Button type="submit" variant="primary" className="w-full" disabled={isLoading || code.length < 6}>
-                {isLoading ? "確認中…" : "ログイン"}
+                {isLoading ? <Spinner /> : "ログイン"}
               </Button>
             </form>
 
@@ -281,6 +313,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 required
                 disabled={isLoading}
                 aria-label="メールアドレス"
+                data-autofocus
               />
               <label className="flex cursor-pointer items-start gap-2">
                 <input
@@ -297,7 +330,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 </span>
               </label>
               <Button type="submit" variant="primary" className="w-full" disabled={isLoading || !agreed}>
-                {isLoading ? "送信中…" : "確認コードを送る"}
+                {isLoading ? <Spinner /> : "確認コードを送る"}
               </Button>
             </form>
 

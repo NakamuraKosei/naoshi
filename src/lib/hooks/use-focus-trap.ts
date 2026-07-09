@@ -26,11 +26,12 @@ export function useFocusTrap(isOpen: boolean, onClose?: () => void) {
       );
     }
 
-    // モーダルが開いた時に最初の要素にフォーカス
+    // モーダルが開いた時にフォーカスを移す。
+    // data-autofocus指定の要素があればそれを優先（例: メール入力欄）、無ければ最初の要素へ
+    // ※ Reactの autoFocus はHTML属性に出力されないため、データ属性で明示する
     const focusable = getFocusable();
-    if (focusable.length > 0) {
-      focusable[0].focus();
-    }
+    const autoTarget = el.querySelector<HTMLElement>("[data-autofocus]");
+    (autoTarget ?? focusable[0])?.focus();
 
     function handleKeyDown(e: KeyboardEvent) {
       // Escapeで閉じる

@@ -117,13 +117,16 @@ export function HeroConverter() {
             <p className="mt-4 text-lg leading-[1.75] text-text-secondary">
               日本語特化AIヒューマナイザー。<br className="sm:hidden" />レポートを貼り付けて「なおす」を押すだけ。
             </p>
-            {/* 主要な価値を一行で示す（区切り点でつなぐ） */}
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-text-muted">
-              <span>参考文献はそのまま</span>
-              <span aria-hidden className="text-border">·</span>
-              <span>あなたの文体を再現</span>
-              <span aria-hidden className="text-border">·</span>
-              <span>コピペチェッカー対策</span>
+            {/* 主要な価値をチップで示す（折り返しても自然に見える形） */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+              {["参考文献はそのまま", "編集してそのまま提出", "コピペチェッカー対策"].map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full bg-[#F4F6FA] px-3.5 py-1.5 text-xs font-medium text-text-secondary md:text-sm"
+                >
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
 

@@ -31,7 +31,7 @@ export default function Home() {
         <section className="bg-primary-lighter">
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-semibold text-text-primary md:text-[32px]">
+              <h2 className="text-[26px] font-semibold leading-[1.35] text-text-primary md:text-[32px]">
                 Naoshi が選ばれる理由
               </h2>
               <p className="mt-4 text-base leading-[1.75] text-text-secondary">
@@ -80,8 +80,8 @@ export default function Home() {
         <section id="how-it-works" className="bg-surface">
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-semibold text-text-primary md:text-[32px]">
-                3ステップで、すぐになおる
+              <h2 className="text-[26px] font-semibold leading-[1.35] text-text-primary md:text-[32px]">
+                3ステップで、<br className="sm:hidden" />すぐになおる
               </h2>
               <p className="mt-4 text-base leading-[1.75] text-text-secondary">
                 難しい設定は不要です。貼り付けてボタンを押すだけ。
@@ -188,16 +188,17 @@ export default function Home() {
               <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-text-on-dark">
                 ヘビープラン限定
               </span>
-              <h2 className="mt-4 text-3xl font-semibold leading-[1.3] text-text-on-dark md:text-[32px]">
-                もう一段上の、自然な仕上がりへ。
+              <h2 className="mt-4 text-[26px] font-semibold leading-[1.35] text-text-on-dark md:text-[32px]">
+                もう一段上の、<br className="sm:hidden" />自然な仕上がりへ。
               </h2>
               <p className="mt-4 text-base leading-[1.75] text-text-on-dark/80">
                 ヘビープランでは、精度と&ldquo;あなたらしさ&rdquo;を高める2つの機能が使えます。
               </p>
             </div>
 
-            {/* クリックで詳細を開閉。既定は各機能の一行説明のみ（details/summaryでJS不要） */}
-            <div className="mx-auto mt-14 max-w-3xl divide-y divide-border/60 overflow-hidden rounded-3xl bg-surface shadow-xl">
+            {/* クリックで詳細を開閉。既定は各機能の一行説明のみ（details/summaryでJS不要）
+                ホバー時は他のカードと同じく浮き上がるアニメーション */}
+            <div className="mx-auto mt-14 max-w-3xl divide-y divide-border/60 overflow-hidden rounded-3xl bg-surface shadow-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl">
               {/* 高精度モード（クリックで詳細） */}
               <details className="group">
                 <summary className="flex cursor-pointer list-none items-center gap-4 px-7 py-6 transition-colors hover:bg-[#FAFBFD] md:px-9 [&::-webkit-details-marker]:hidden">

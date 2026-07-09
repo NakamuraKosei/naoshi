@@ -185,7 +185,7 @@ export default function Home() {
         <section className="bg-surface-dark">
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
             <div className="mx-auto max-w-3xl text-center">
-              <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-text-on-dark">
+              <span className="inline-flex items-center rounded-full bg-[#EEF3FB] px-3.5 py-1 text-xs font-semibold text-primary">
                 ヘビープラン限定
               </span>
               <h2 className="mt-4 text-[26px] font-semibold leading-[1.35] text-text-on-dark md:text-[32px]">

@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Button } from "@/components/ui/button";
 import { PricingPlans } from "@/components/marketing/pricing-plans";
+import { HeavyPlanFeatures } from "@/components/marketing/heavy-plan-features";
 import { FaqList } from "@/components/marketing/faq-list";
 import { CancelLink } from "@/components/marketing/cancel-link";
 
@@ -80,6 +81,9 @@ export default function PricingPage() {
             </ul>
           </div>
         </section>
+
+        {/* ヘビープラン限定機能（LPと共通・料金の理由づけとしてFAQ手前に） */}
+        <HeavyPlanFeatures />
 
         {/* FAQ（primary-lighter） */}
         <section className="bg-primary-lighter">

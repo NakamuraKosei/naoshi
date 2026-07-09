@@ -42,6 +42,8 @@ export default async function AccountPage() {
   const limit = await checkLimit(user.id);
   const used = limit.used;
   const remaining = limit.remaining;
+  // 使用率（プログレスバー用）。90%以上は警告色にする
+  const usagePercent = Math.min(100, Math.round((used / rule.periodLimit) * 100));
 
   // 累計の使用回数
   const { count: totalCount } = await supabase
@@ -81,6 +83,9 @@ export default async function AccountPage() {
             <Button variant="primary" className="w-full">なおす →</Button>
           </Link>
         </Card>
+
+        {/* --- プランと使用状況 --- */}
+        <h2 className="mb-3 mt-10 text-sm font-semibold text-text-muted">プランと使用状況</h2>
 
         {/* 上部: プラン状態カード */}
         <Card className="mb-6">
@@ -158,14 +163,37 @@ export default async function AccountPage() {
                 </p>
               </div>
             </div>
+
+            {/* 使用率バー（90%以上は警告色） */}
+            <div className="mt-6">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-border/60">
+                <div
+                  className={
+                    usagePercent >= 90
+                      ? "h-full rounded-full bg-[#EF4444]"
+                      : "h-full rounded-full bg-primary"
+                  }
+                  style={{ width: `${usagePercent}%` }}
+                />
+              </div>
+              <p className="mt-1.5 text-right text-xs tabular-nums text-text-muted">
+                {usagePercent}% 使用
+              </p>
+            </div>
           </CardContent>
         </Card>
+
+        {/* --- 機能 --- */}
+        <h2 className="mb-3 mt-12 text-sm font-semibold text-text-muted">機能</h2>
 
         {/* 使い方ガイド（折りたたみ式。全プラン共通） */}
         <UsageGuide />
 
         {/* マイ文体（ヘビープラン限定。自分の文体を学習させて変換に反映） */}
         {rule.doubleCheck && <MyStyleCard />}
+
+        {/* --- サポート --- */}
+        <h2 className="mb-3 mt-12 text-sm font-semibold text-text-muted">サポート</h2>
 
         {/* ご意見・ご要望（任意送信。/api/feedback を再利用） */}
         <FeedbackCard />

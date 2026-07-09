@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/cn";
 import { saveLocalResult } from "@/lib/local-results";
+import { Toast, useToast } from "@/components/ui/toast";
 
 // 文体の型定義
 type Style = "dearu" | "desumasu";
@@ -58,8 +59,9 @@ export function AppClient({
   const [doubleCheck, setDoubleCheck] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [copied, setCopied] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  // トースト通知（コピー完了など）
+  const { toast, showToast } = useToast();
   const [modificationPoints, setModificationPoints] = useState<string[]>([]);
   // 変換完了後の確認メッセージ表示フラグ
   const [showCompleteOverlay, setShowCompleteOverlay] = useState(false);
@@ -93,7 +95,7 @@ export function AppClient({
       .then((data: { registered?: boolean } | null) => {
         if (cancelled || !data) return;
         setMyStyleRegistered(!!data.registered);
-        setUseMyStyle(!!data.registered);
+        // マイ文体は既定オフ。使いたいときにユーザーが自分でONにする
       })
       .catch(() => {
         // 取得失敗時はトグル非表示のまま（変換自体には影響しない）
@@ -265,10 +267,9 @@ export function AppClient({
     if (!output) return;
     try {
       await navigator.clipboard.writeText(output);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
+      showToast("コピーしました");
     } catch {
-      setErrorMessage("コピーに失敗しました。");
+      showToast("コピーに失敗しました", "error");
     }
   }
 
@@ -420,7 +421,6 @@ export function AppClient({
                 {output.length.toLocaleString()} 字
               </span>
               <div className="flex items-center gap-3">
-                {copied && <span className="text-xs text-[#10B981]">コピーしました</span>}
                 <Button variant="secondary" size="sm" onClick={handleCopy} disabled={!output || isLoading}>
                   コピー
                 </Button>
@@ -542,6 +542,9 @@ export function AppClient({
       )}
 
       {/* 超過モーダル */}
+      {/* トースト通知（コピー完了など） */}
+      <Toast toast={toast} />
+
       {showLimitModal && (
         <LimitExceededModal
           limitType={limitType}
@@ -795,6 +798,14 @@ function ConvertingOverlay({ doubleCheck }: { doubleCheck: boolean }) {
             style={{ width: `${progress}%` }}
           />
         </div>
+        {/* 進捗に応じた段階メッセージ（長い待ち時間の安心材料） */}
+        <p className="-mt-2 text-xs text-text-muted" aria-live="polite">
+          {progress < 40
+            ? "文章を読み込んでいます…"
+            : progress < 75
+              ? "書き換えています…"
+              : "仕上げ中です。もう少しで完了します…"}
+        </p>
       </div>
     </div>
   );

@@ -11,6 +11,13 @@ import { Button } from "@/components/ui/button";
 // サンプルの最低文字数（API側と揃える）
 const MIN_SAMPLE_CHARS = 1000;
 
+// 解析中に順番に見せる段階メッセージ（正確な進捗は取れないため目安）
+const ANALYZE_STAGES = [
+  "文章を読み込んでいます…",
+  "語尾や言い回しの癖を分析しています…",
+  "文体プロファイルを作成しています…",
+];
+
 type ProfileState = {
   registered: boolean;
   features: string[];
@@ -25,6 +32,19 @@ export function MyStyleCard() {
   // 登録済みでも「登録し直す」で入力フォームを開けるようにする
   const [editing, setEditing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  // 解析中の段階メッセージ（8秒ごとに進む）
+  const [analyzeStage, setAnalyzeStage] = useState(0);
+  useEffect(() => {
+    if (!analyzing) {
+      setAnalyzeStage(0);
+      return;
+    }
+    const id = setInterval(
+      () => setAnalyzeStage((s) => Math.min(s + 1, ANALYZE_STAGES.length - 1)),
+      8000,
+    );
+    return () => clearInterval(id);
+  }, [analyzing]);
   const [deleting, setDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [justRegistered, setJustRegistered] = useState(false);
@@ -160,8 +180,19 @@ export function MyStyleCard() {
           </div>
         )}
 
+        {/* 解析中: 段階メッセージ付きのローディング表示 */}
+        {showForm && analyzing && (
+          <div className="flex flex-col items-center gap-4 rounded-xl bg-primary-lighter px-6 py-10">
+            <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-primary/25 border-t-primary" />
+            <p className="text-sm font-medium text-text-primary" aria-live="polite">
+              {ANALYZE_STAGES[analyzeStage]}
+            </p>
+            <p className="text-xs text-text-muted">30秒ほどかかることがあります。このままお待ちください。</p>
+          </div>
+        )}
+
         {/* 登録フォーム（未登録 or 登録し直し） */}
-        {showForm && (
+        {showForm && !analyzing && (
           <div className="space-y-3">
             <div className="space-y-1 text-sm text-text-secondary">
               <p>

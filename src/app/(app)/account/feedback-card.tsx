@@ -42,7 +42,7 @@ export function FeedbackCard() {
   }
 
   return (
-    <Card className="mt-8">
+    <Card>
       <CardHeader>
         <CardTitle>ご意見・ご要望</CardTitle>
         <CardDescription>

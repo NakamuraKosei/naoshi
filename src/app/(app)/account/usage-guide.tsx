@@ -33,7 +33,7 @@ export function UsageGuide() {
   const [open, setOpen] = useState(false);
 
   return (
-    <Card className="mt-8">
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <CardTitle>使い方</CardTitle>

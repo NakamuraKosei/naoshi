@@ -106,13 +106,13 @@ export function HeroConverter() {
   return (
     <>
       <section id="hero" className="bg-surface">
-        <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-24">
+        <div className="mx-auto w-full max-w-6xl px-6 py-12 md:py-16">
           {/* タグライン */}
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-[28px] font-bold leading-[1.3] tracking-tight text-text-primary sm:text-4xl sm:leading-[1.15] md:text-[56px]">
               AIで書いたレポートを、
               <br />
-              自然な日本語に。
+              <span className="bg-gradient-to-b from-transparent from-[62%] to-[#C4D8F4] to-[62%]">自然な日本語</span>に。
             </h1>
             <p className="mt-4 text-lg leading-[1.75] text-text-secondary">
               日本語特化AIヒューマナイザー。<br className="sm:hidden" />レポートを貼り付けて「なおす」を押すだけ。
@@ -131,7 +131,7 @@ export function HeroConverter() {
           </div>
 
           {/* 文体セレクタ */}
-          <div className="mt-10 flex flex-col items-center gap-3">
+          <div className="mt-8 flex flex-col items-center gap-3">
             <StyleSelector value={style} onChange={setStyle} />
           </div>
 
@@ -145,13 +145,13 @@ export function HeroConverter() {
             </div>
           )}
 
-          {/* 入力エリア（1カラム） */}
-          <div className="mx-auto mt-8 max-w-3xl">
+          {/* 入力エリア（1カラム）— シンプル。やわらかい影でわずかに持ち上げて質感を出す */}
+          <div className="mx-auto mt-6 max-w-3xl">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="ここにAIが書いたレポートを貼り付けてください。"
-              className="min-h-[240px] md:min-h-[300px]"
+              className="min-h-[200px] shadow-[0_4px_20px_-8px_rgba(15,23,42,0.15)] md:min-h-[230px]"
               aria-label="元の文章の入力"
             />
             <div className="mt-2 text-right text-xs tabular-nums text-text-muted">
@@ -160,7 +160,7 @@ export function HeroConverter() {
           </div>
 
           {/* なおすボタン */}
-          <div className="mt-8 flex justify-center">
+          <div className="mt-6 flex justify-center">
             <Button
               variant="primary"
               size="lg"

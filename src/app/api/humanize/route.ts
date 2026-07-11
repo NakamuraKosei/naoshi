@@ -14,7 +14,10 @@ import { createClientFromRequest } from "@/lib/supabase/bearer";
  *   POST { text: string, style: "dearu" | "desumasu" }
  *
  * レスポンス:
- *   200 { output: string, durationMs: number }
+ *   200 { output: string, durationMs: number, modificationPoints: string[],
+ *         aiScore: { before: number, after: number } | null }
+ *       aiScore は変換前後の「AIっぽさ」目安（0-100）。変換と同一のAPI呼び出しで
+ *       自己評価させるためコスト増はほぼゼロ。抽出失敗時は null（UI非表示）。
  *   400 { error: string } -- 入力バリデーションエラー
  *   500 { error: string } -- サーバー/外部API/設定エラー
  *
@@ -96,6 +99,14 @@ const IS_MOCK = process.env.MOCK_HUMANIZE === "1";
 // 現れることはなく、誤検知しない。
 const OUTPUT_DELIMITER = "===修正ポイント===";
 
+// 修正ポイントとAIスコアを分ける区切り線。
+// 変換と同一のAPI呼び出しで「変換前後のAIっぽさ(0-100)」を自己評価させる。
+// 別呼び出しにしないことでAPIコスト増をほぼゼロに抑える（広告・UX用の目安表示）。
+const SCORE_DELIMITER = "===AIスコア===";
+
+// AIスコアの型（before=変換前 / after=変換後、0-100の整数）
+type AiScore = { before: number; after: number };
+
 /**
  * プロンプト1.4で禁止している記号の混入をコード側で除去する保険。
  * モデルは概ね守るが、まれに混入するため機械的に掃除する。
@@ -122,32 +133,57 @@ function stripCodeFence(text: string): string {
 }
 
 /**
- * モデル出力（本文 + 区切り線 + 修正ポイント）を分解する。
+ * スコアブロックから「before: 72」「after: 18」形式の数値を抽出する。
+ * 取れない/範囲外の場合は null（スコア非表示。既存機能には影響させない）。
+ */
+function parseAiScore(block: string): AiScore | null {
+  const beforeMatch = block.match(/before\s*[:：]\s*(\d{1,3})/i);
+  const afterMatch = block.match(/after\s*[:：]\s*(\d{1,3})/i);
+  if (!beforeMatch || !afterMatch) return null;
+  const before = Number(beforeMatch[1]);
+  const after = Number(afterMatch[1]);
+  if (before < 0 || before > 100 || after < 0 || after > 100) return null;
+  return { before, after };
+}
+
+/**
+ * モデル出力（本文 + 区切り線 + 修正ポイント + AIスコア）を分解する。
  * - 区切り線がある場合: 前を本文、後ろを修正ポイント（行ごとの箇条書き）として扱う。
+ * - AIスコア区切り線がある場合: 修正ポイントの後ろからbefore/afterを抽出する。
  * - 区切り線が無い/形式が崩れた場合: 全体を本文として扱う（フォールバック）。
  * これによりJSONのような構文エラーで全体が失敗することがない。
  */
 function parseStructuredOutput(raw: string): {
   convertedText: string;
   modificationPoints: string[];
+  aiScore: AiScore | null;
 } {
   const cleaned = raw.trim();
   const idx = cleaned.indexOf(OUTPUT_DELIMITER);
 
   if (idx === -1) {
     // 区切り線なし → 全体を本文として扱う
-    return { convertedText: stripCodeFence(cleaned), modificationPoints: [] };
+    return { convertedText: stripCodeFence(cleaned), modificationPoints: [], aiScore: null };
   }
 
   const body = stripCodeFence(cleaned.slice(0, idx).trim());
-  const pointsBlock = cleaned.slice(idx + OUTPUT_DELIMITER.length);
+  let pointsBlock = cleaned.slice(idx + OUTPUT_DELIMITER.length);
+
+  // AIスコアセクションを分離（無ければ aiScore = null のまま）
+  let aiScore: AiScore | null = null;
+  const scoreIdx = pointsBlock.indexOf(SCORE_DELIMITER);
+  if (scoreIdx !== -1) {
+    aiScore = parseAiScore(pointsBlock.slice(scoreIdx + SCORE_DELIMITER.length));
+    pointsBlock = pointsBlock.slice(0, scoreIdx);
+  }
+
   // 各行の先頭の箇条書き記号（・- * •）と空白を除去して配列化
   const modificationPoints = pointsBlock
     .split("\n")
     .map((line) => line.replace(/^[\s・\-*•]+/, "").trim())
     .filter((line) => line.length > 0);
 
-  return { convertedText: body, modificationPoints };
+  return { convertedText: body, modificationPoints, aiScore };
 }
 
 export async function POST(request: Request) {
@@ -324,7 +360,7 @@ export async function POST(request: Request) {
         ? `\n\n---\n\n${await loadStyleInjectAddon(styleProfileSummary)}`
         : "";
       // 文体指定・ダブルチェック追加指示・マイ文体・出力フォーマットを末尾に追加
-      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}${doubleCheckAddon}${styleAddon}\n\n---\n\n## 出力フォーマット\n\n最初に変換後の本文だけを書く。本文をすべて書き終えたら、次の行に区切り線「${OUTPUT_DELIMITER}」を単独の行で出力し、その後に修正ポイントを1行に1個ずつ「・」で始めて箇条書きする。\n\n形式の例:\n（変換後の本文をそのまま記述）\n${OUTPUT_DELIMITER}\n・修正ポイント1\n・修正ポイント2\n\n厳守事項:\n- 本文部分には区切り線「${OUTPUT_DELIMITER}」やJSON・コードブロック記号（\`\`\`）を絶対に含めない。\n- 「本文:」などの前置きや見出しは付けず、いきなり本文から書き始める。\n- 修正ポイント: ${pointsInstruction}具体的にどの表現をどう変えたかがわかるように書く。`;
+      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}${doubleCheckAddon}${styleAddon}\n\n---\n\n## 出力フォーマット\n\n最初に変換後の本文だけを書く。本文をすべて書き終えたら、次の行に区切り線「${OUTPUT_DELIMITER}」を単独の行で出力し、その後に修正ポイントを1行に1個ずつ「・」で始めて箇条書きする。修正ポイントの後、次の行に区切り線「${SCORE_DELIMITER}」を単独の行で出力し、変換前の原文と変換後の本文それぞれの「AI生成っぽさ」を評価して記述する。\n\n### AIスコアの評価基準\n変換前・変換後とも同一の基準で0〜100の整数を付ける（高いほどAI生成っぽい）:\n- 同じ文型・言い回し・文末表現の機械的な繰り返し\n- 「〜することができる」「〜と言えるだろう」等の冗長で定型的な言い回し\n- 具体例や固有の視点が乏しく、一般論に終始する抽象性\n- 接続詞・段落構成が教科書的に整いすぎている均質さ\n- 全文を通した文のリズム・長短の単調さ\n評価は保守的に、上記基準への該当度だけで機械的に採点する。自分が生成した文章だからという理由で甘くしない。\n\n形式の例:\n（変換後の本文をそのまま記述）\n${OUTPUT_DELIMITER}\n・修正ポイント1\n・修正ポイント2\n${SCORE_DELIMITER}\nbefore: 72\nafter: 18\n\n厳守事項:\n- 本文部分には区切り線「${OUTPUT_DELIMITER}」「${SCORE_DELIMITER}」やJSON・コードブロック記号（\`\`\`）を絶対に含めない。\n- 「本文:」などの前置きや見出しは付けず、いきなり本文から書き始める。\n- 修正ポイント: ${pointsInstruction}具体的にどの表現をどう変えたかがわかるように書く。\n- AIスコア: 「before: 数値」「after: 数値」の2行のみ。説明文は書かない。`;
     } catch (err) {
       // 本文はログに残さない
       console.error(
@@ -347,6 +383,9 @@ export async function POST(request: Request) {
     // 修正ポイント
     let modificationPoints: string[] = [];
 
+    // AIスコア（変換前後のAIっぽさ。抽出失敗時はnullでUI非表示）
+    let aiScore: AiScore | null = null;
+
     if (IS_MOCK) {
       // ダミー応答
       await new Promise((r) => setTimeout(r, 600));
@@ -355,6 +394,7 @@ export async function POST(request: Request) {
         "モックモードのため実際の変換は行っていません",
         "本番環境では MOCK_HUMANIZE を削除してください",
       ];
+      aiScore = { before: 72, after: 18 };
     } else {
       const client = new Anthropic({ apiKey: apiKey! });
 
@@ -429,6 +469,8 @@ export async function POST(request: Request) {
       // 修正ポイントは最大3個に制限（通常=2〜3個 / ダブルチェック=3個）。
       // モデルが多めに返した場合のガードレール。
       modificationPoints = parsed.modificationPoints.slice(0, 3);
+      // AIスコア（抽出できなかった場合はnullのままUI非表示）
+      aiScore = parsed.aiScore;
 
       // ダブルチェックは上位モデル(Opus)で変換済みなので、追加のリペア段階は行わない。
       // ※ Copyleaksスキャン + repair による方式はクレジット回復後に再検討する候補として保留。
@@ -465,7 +507,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return Response.json({ output, durationMs, modificationPoints });
+    return Response.json({ output, durationMs, modificationPoints, aiScore });
   } catch (err) {
     // 本文（text）はログに出さない。エラー種別のみ。
     console.error(

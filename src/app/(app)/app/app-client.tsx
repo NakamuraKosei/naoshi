@@ -14,11 +14,15 @@ type Style = "dearu" | "desumasu";
 type Category = "report" | "business";
 type LimitType = "count" | "chars";
 
+// AIスコア（変換前後の「AIっぽさ」目安。0-100）
+type AiScore = { before: number; after: number };
+
 // API レスポンスの型
 type HumanizeResponse = {
   output: string;
   durationMs: number;
   modificationPoints?: string[];
+  aiScore?: AiScore | null;
 };
 
 // LP → /app へテキストを引き継ぐための sessionStorage キー
@@ -63,6 +67,10 @@ export function AppClient({
   // トースト通知（コピー完了など）
   const { toast, showToast } = useToast();
   const [modificationPoints, setModificationPoints] = useState<string[]>([]);
+  // AIスコア（変換前後のAIっぽさ目安。nullなら非表示）
+  const [aiScore, setAiScore] = useState<AiScore | null>(null);
+  // スコアバーのアニメーション用（マウント直後はbefore幅 → afterに縮む）
+  const [scoreBarAnimated, setScoreBarAnimated] = useState(false);
   // 変換完了後の確認メッセージ表示フラグ
   const [showCompleteOverlay, setShowCompleteOverlay] = useState(false);
   // フィードバック
@@ -113,6 +121,15 @@ export function AppClient({
       sessionStorage.removeItem(PENDING_TEXT_KEY);
     }
   }, []);
+
+  // AIスコアバーのアニメーション。
+  // スコア表示直後はbefore幅で描画し、少し置いてafter幅へ縮める
+  // （CSS transitionで「AIっぽさが下がる」動きを見せる演出）。
+  useEffect(() => {
+    if (!aiScore) return;
+    const id = setTimeout(() => setScoreBarAnimated(true), 600);
+    return () => clearTimeout(id);
+  }, [aiScore]);
 
   // カテゴリ変更時に文体のデフォルトも切り替える
   function handleCategoryChange(newCategory: Category) {
@@ -168,6 +185,8 @@ export function AppClient({
     setErrorMessage("");
     setOutput("");
     setModificationPoints([]);
+    setAiScore(null);
+    setScoreBarAnimated(false);
     setIsLoading(true);
 
     try {
@@ -208,6 +227,7 @@ export function AppClient({
       const data = (await res.json()) as HumanizeResponse;
       setOutput(data.output);
       setModificationPoints(data.modificationPoints ?? []);
+      setAiScore(data.aiScore ?? null);
 
       // 変換結果をこの端末のローカル履歴に保存（サーバーには保存しない）
       saveLocalResult({
@@ -428,6 +448,44 @@ export function AppClient({
             </div>
           </section>
         </div>
+
+        {/* AIっぽさスコア（変換完了後のみ・両カードの下に全幅で表示） */}
+        {aiScore && output && !isLoading && (
+          <div className="mt-6 rounded-xl border border-border bg-primary-lighter px-6 py-4">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                  <rect x="3" y="11" width="18" height="10" rx="2" />
+                  <circle cx="12" cy="5" r="2" />
+                  <path d="M12 7v4" />
+                  <path d="M8 16h.01" />
+                  <path d="M16 16h.01" />
+                </svg>
+                AIっぽさ（目安）
+              </span>
+              <span className="text-sm tabular-nums text-text-secondary">
+                {aiScore.before}%
+                <span className="mx-1.5 text-text-muted">→</span>
+                <span className="font-semibold text-primary">{aiScore.after}%</span>
+                {aiScore.after < aiScore.before && (
+                  <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-white">
+                    -{aiScore.before - aiScore.after}pt
+                  </span>
+                )}
+              </span>
+            </div>
+            {/* バー: 表示直後はbefore幅 → 0.6秒後にafter幅へ縮むアニメーション */}
+            <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-1000 ease-out"
+                style={{ width: `${scoreBarAnimated ? aiScore.after : aiScore.before}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-text-muted">
+              文章表現から推定した簡易的な目安です。専用のAI検知ツールとは結果が異なる場合があります。
+            </p>
+          </div>
+        )}
 
         {/* 修正ポイント（変換完了後のみ表示） */}
         {modificationPoints.length > 0 && (

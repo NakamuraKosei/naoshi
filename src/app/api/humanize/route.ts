@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { loadHumanizeSystemPrompt, loadStyleInjectAddon, detectTextLength, type Category } from "@/lib/humanize/load-prompt";
+import { loadAiScoreCriteria, loadHumanizeSystemPrompt, loadStyleInjectAddon, detectTextLength, type Category } from "@/lib/humanize/load-prompt";
 import { checkLimit } from "@/lib/usage/check-limit";
 import { recordUsage } from "@/lib/usage/record-usage";
 import { rateLimit } from "@/lib/rate-limit";
@@ -359,8 +359,10 @@ export async function POST(request: Request) {
       const styleAddon = styleProfileSummary
         ? `\n\n---\n\n${await loadStyleInjectAddon(styleProfileSummary)}`
         : "";
+      // AIスコアの評価基準（プロンプトはファイル管理の方針に合わせて外部ファイルから読む）
+      const aiScoreCriteria = await loadAiScoreCriteria();
       // 文体指定・ダブルチェック追加指示・マイ文体・出力フォーマットを末尾に追加
-      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}${doubleCheckAddon}${styleAddon}\n\n---\n\n## 出力フォーマット\n\n最初に変換後の本文だけを書く。本文をすべて書き終えたら、次の行に区切り線「${OUTPUT_DELIMITER}」を単独の行で出力し、その後に修正ポイントを1行に1個ずつ「・」で始めて箇条書きする。修正ポイントの後、次の行に区切り線「${SCORE_DELIMITER}」を単独の行で出力し、変換前の原文と変換後の本文それぞれの「AI生成っぽさ」を評価して記述する。\n\n### AIスコアの評価基準\n変換前・変換後とも同一の基準で0〜100の整数を付ける（高いほどAI生成っぽい）:\n- 同じ文型・言い回し・文末表現の機械的な繰り返し\n- 「〜することができる」「〜と言えるだろう」等の冗長で定型的な言い回し\n- 具体例や固有の視点が乏しく、一般論に終始する抽象性\n- 接続詞・段落構成が教科書的に整いすぎている均質さ\n- 全文を通した文のリズム・長短の単調さ\n評価は保守的に、上記基準への該当度だけで機械的に採点する。自分が生成した文章だからという理由で甘くしない。\n\n形式の例:\n（変換後の本文をそのまま記述）\n${OUTPUT_DELIMITER}\n・修正ポイント1\n・修正ポイント2\n${SCORE_DELIMITER}\nbefore: 72\nafter: 18\n\n厳守事項:\n- 本文部分には区切り線「${OUTPUT_DELIMITER}」「${SCORE_DELIMITER}」やJSON・コードブロック記号（\`\`\`）を絶対に含めない。\n- 「本文:」などの前置きや見出しは付けず、いきなり本文から書き始める。\n- 修正ポイント: ${pointsInstruction}具体的にどの表現をどう変えたかがわかるように書く。\n- AIスコア: 「before: 数値」「after: 数値」の2行のみ。説明文は書かない。`;
+      systemPrompt = `${basePrompt}\n\n---\n\n文体指定: ${styleLabel(body.style)}${doubleCheckAddon}${styleAddon}\n\n---\n\n## 出力フォーマット\n\n最初に変換後の本文だけを書く。本文をすべて書き終えたら、次の行に区切り線「${OUTPUT_DELIMITER}」を単独の行で出力し、その後に修正ポイントを1行に1個ずつ「・」で始めて箇条書きする。修正ポイントの後、次の行に区切り線「${SCORE_DELIMITER}」を単独の行で出力し、変換前の原文と変換後の本文それぞれの「AI生成っぽさ」を評価して記述する。\n\n${aiScoreCriteria}\n\n形式の例:\n（変換後の本文をそのまま記述）\n${OUTPUT_DELIMITER}\n・修正ポイント1\n・修正ポイント2\n${SCORE_DELIMITER}\nbefore: 72\nafter: 18\n\n厳守事項:\n- 本文部分には区切り線「${OUTPUT_DELIMITER}」「${SCORE_DELIMITER}」やJSON・コードブロック記号（\`\`\`）を絶対に含めない。\n- 「本文:」などの前置きや見出しは付けず、いきなり本文から書き始める。\n- 修正ポイント: ${pointsInstruction}具体的にどの表現をどう変えたかがわかるように書く。\n- AIスコア: 「before: 数値」「after: 数値」の2行のみ。説明文は書かない。`;
     } catch (err) {
       // 本文はログに残さない
       console.error(

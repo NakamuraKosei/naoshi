@@ -44,6 +44,9 @@ const REPAIR_PROMPT_FILES: Record<Category, string> = {
 const STYLE_EXTRACT_FILE = "style-profile-extract-v1.0.md";
 const STYLE_INJECT_FILE = "style-inject-v1.0.md";
 
+// AIスコア（変換前後のAIっぽさ自己評価）の評価基準
+const AI_SCORE_CRITERIA_FILE = "ai-score-criteria-v1.0.md";
+
 // キャッシュ
 const cachedPrompts: Record<string, string | null> = {};
 
@@ -112,6 +115,22 @@ export async function loadStyleExtractPrompt(): Promise<string> {
   }
   const promptPath = path.join(process.cwd(), "prompts", STYLE_EXTRACT_FILE);
   const content = await readFile(promptPath, "utf8");
+  cachedPrompts[cacheKey] = content;
+  return content;
+}
+
+/**
+ * AIスコアの評価基準（「### AIスコアの評価基準」見出し込み）を取得する。
+ * /api/humanize の出力フォーマット指示に埋め込んで使う。
+ */
+export async function loadAiScoreCriteria(): Promise<string> {
+  const cacheKey = "ai-score:criteria";
+  if (cachedPrompts[cacheKey]) {
+    return cachedPrompts[cacheKey]!;
+  }
+  const promptPath = path.join(process.cwd(), "prompts", AI_SCORE_CRITERIA_FILE);
+  // 末尾改行の有無で出力テンプレートが崩れないよう trim して固定する
+  const content = (await readFile(promptPath, "utf8")).trim();
   cachedPrompts[cacheKey] = content;
   return content;
 }
